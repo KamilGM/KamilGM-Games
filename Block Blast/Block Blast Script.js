@@ -30,12 +30,15 @@ const COLORS = [
 ];
 
 const SHAPES = [
+
     [[1]],
 
     [[1, 1]],
+
     [[1], [1]],
 
     [[1, 1, 1]],
+
     [[1], [1], [1]],
 
     [
@@ -105,9 +108,7 @@ const SHAPES = [
         [1, 1, 0]
     ],
 
-    [
-        [1, 1, 1, 1]
-    ],
+    [[1, 1, 1, 1]],
 
     [
         [1],
@@ -154,7 +155,13 @@ let dragging = null;
 let pointerId = null;
 let preview = null;
 
+
+/* =========================
+   BOARD
+========================= */
+
 function createBoard() {
+
     board = Array.from(
         { length: BOARD_SIZE },
         () => Array(BOARD_SIZE).fill(null)
@@ -163,7 +170,9 @@ function createBoard() {
     boardElement.innerHTML = "";
 
     for (let row = 0; row < BOARD_SIZE; row++) {
+
         for (let col = 0; col < BOARD_SIZE; col++) {
+
             const cell = document.createElement("div");
 
             cell.className = "cell";
@@ -176,14 +185,20 @@ function createBoard() {
     }
 }
 
+
+/* =========================
+   PIECES
+========================= */
+
 function createPiece() {
+
     const shape =
         SHAPES[
             Math.floor(Math.random() * SHAPES.length)
         ].map(row => [...row]);
 
     return {
-        shape,
+        shape: shape,
         color:
             COLORS[
                 Math.floor(Math.random() * COLORS.length)
@@ -192,7 +207,9 @@ function createPiece() {
     };
 }
 
+
 function generatePieces() {
+
     pieces = [];
 
     for (let i = 0; i < PIECE_COUNT; i++) {
@@ -202,10 +219,13 @@ function generatePieces() {
     renderPieces();
 }
 
+
 function renderPieces() {
+
     piecesElement.innerHTML = "";
 
     pieces.forEach((piece, index) => {
+
         const pieceElement =
             document.createElement("div");
 
@@ -215,29 +235,41 @@ function renderPieces() {
             pieceElement.classList.add("used");
         }
 
+        pieceElement.dataset.index = index;
+
+        const height = piece.shape.length;
+        const width = piece.shape[0].length;
+
         const miniGrid =
             document.createElement("div");
 
         miniGrid.className = "miniGrid";
 
-        const height = piece.shape.length;
-        const width = piece.shape[0].length;
+        /*
+            Larger pieces make them much easier
+            to grab on both mouse and touch.
+        */
 
         miniGrid.style.gridTemplateColumns =
-            `repeat(${width}, 21px)`;
+            `repeat(${width}, 27px)`;
 
         miniGrid.style.gridTemplateRows =
-            `repeat(${height}, 21px)`;
+            `repeat(${height}, 27px)`;
 
         piece.shape.forEach(row => {
+
             row.forEach(value => {
+
                 const miniCell =
                     document.createElement("div");
 
                 if (value) {
+
                     miniCell.className =
                         `miniCell block ${piece.color}`;
+
                 } else {
+
                     miniCell.className =
                         "miniCell empty";
                 }
@@ -251,6 +283,7 @@ function renderPieces() {
         piecesElement.appendChild(pieceElement);
 
         if (!piece.used) {
+
             pieceElement.addEventListener(
                 "pointerdown",
                 event => {
@@ -265,25 +298,43 @@ function renderPieces() {
     });
 }
 
+
+/* =========================
+   BOARD RENDER
+========================= */
+
 function renderBoard() {
+
     const cells = boardElement.children;
 
     for (let row = 0; row < BOARD_SIZE; row++) {
+
         for (let col = 0; col < BOARD_SIZE; col++) {
+
             const cell =
                 cells[row * BOARD_SIZE + col];
 
             cell.className = "cell";
 
             if (board[row][col]) {
+
                 cell.classList.add("filled");
-                cell.classList.add(board[row][col]);
+
+                cell.classList.add(
+                    board[row][col]
+                );
             }
         }
     }
 }
 
+
+/* =========================
+   DRAGGING
+========================= */
+
 function startDrag(event, index, element) {
+
     if (
         paused ||
         gameOver ||
@@ -297,9 +348,9 @@ function startDrag(event, index, element) {
     pointerId = event.pointerId;
 
     dragging = {
-        index,
+        index: index,
         piece: pieces[index],
-        element
+        element: element
     };
 
     element.classList.add("dragging");
@@ -316,23 +367,31 @@ function startDrag(event, index, element) {
     window.addEventListener(
         "pointermove",
         handlePointerMove,
-        { passive: false }
+        {
+            passive: false
+        }
     );
 
     window.addEventListener(
         "pointerup",
         handlePointerUp,
-        { once: true }
+        {
+            once: true
+        }
     );
 
     window.addEventListener(
         "pointercancel",
         handlePointerUp,
-        { once: true }
+        {
+            once: true
+        }
     );
 }
 
+
 function handlePointerMove(event) {
+
     if (
         !dragging ||
         event.pointerId !== pointerId
@@ -348,7 +407,9 @@ function handlePointerMove(event) {
     );
 }
 
+
 function handlePointerUp(event) {
+
     if (
         !dragging ||
         event.pointerId !== pointerId
@@ -357,7 +418,6 @@ function handlePointerUp(event) {
     }
 
     const currentDrag = dragging;
-
     const currentPreview = preview;
 
     clearPreview();
@@ -370,6 +430,7 @@ function handlePointerUp(event) {
         currentPreview &&
         currentPreview.valid
     ) {
+
         placePiece(
             currentDrag.index,
             currentPreview.row,
@@ -387,7 +448,13 @@ function handlePointerUp(event) {
     );
 }
 
+
+/* =========================
+   PREVIEW
+========================= */
+
 function updatePreview(clientX, clientY) {
+
     clearPreview();
 
     if (!dragging) {
@@ -397,18 +464,26 @@ function updatePreview(clientX, clientY) {
     const boardRect =
         boardElement.getBoundingClientRect();
 
+    /*
+        Extra border protection.
+        The pointer must actually be over
+        the board itself.
+    */
+
+    const border = 3;
+
     if (
-        clientX < boardRect.left ||
-        clientX > boardRect.right ||
-        clientY < boardRect.top ||
-        clientY > boardRect.bottom
+        clientX < boardRect.left + border ||
+        clientX > boardRect.right - border ||
+        clientY < boardRect.top + border ||
+        clientY > boardRect.bottom - border
     ) {
         preview = null;
         return;
     }
 
-    const piece = dragging.piece;
-    const shape = piece.shape;
+    const shape =
+        dragging.piece.shape;
 
     const cellWidth =
         boardRect.width / BOARD_SIZE;
@@ -434,23 +509,28 @@ function updatePreview(clientX, clientY) {
     const shapeHeight =
         shape.length;
 
-    let firstFilledRow =
-        shapeHeight;
+    /*
+        Find the actual first block so the
+        preview feels natural when grabbed.
+    */
 
-    let firstFilledCol =
-        shapeWidth;
+    let firstFilledRow = shapeHeight;
+    let firstFilledCol = shapeWidth;
 
     for (
         let row = 0;
         row < shapeHeight;
         row++
     ) {
+
         for (
             let col = 0;
             col < shapeWidth;
             col++
         ) {
+
             if (shape[row][col]) {
+
                 firstFilledRow =
                     Math.min(
                         firstFilledRow,
@@ -466,17 +546,46 @@ function updatePreview(clientX, clientY) {
         }
     }
 
-    const startRow =
+    let startRow =
         centerRow -
         Math.floor(shapeHeight / 2) -
         firstFilledRow +
         1;
 
-    const startCol =
+    let startCol =
         centerCol -
         Math.floor(shapeWidth / 2) -
         firstFilledCol +
         1;
+
+    /*
+        Keep the entire shape inside
+        the 8 by 8 board.
+    */
+
+    while (
+        startRow < 0 &&
+        shape.some((row, r) =>
+            row.some((value, c) =>
+                value &&
+                startRow + r < 0
+            )
+        )
+    ) {
+        startRow++;
+    }
+
+    while (
+        startCol < 0 &&
+        shape.some((row, r) =>
+            row.some((value, c) =>
+                value &&
+                startCol + c < 0
+            )
+        )
+    ) {
+        startCol++;
+    }
 
     const valid =
         canPlace(
@@ -488,7 +597,7 @@ function updatePreview(clientX, clientY) {
     preview = {
         row: startRow,
         col: startCol,
-        valid
+        valid: valid
     };
 
     for (
@@ -496,11 +605,13 @@ function updatePreview(clientX, clientY) {
         row < shapeHeight;
         row++
     ) {
+
         for (
             let col = 0;
             col < shapeWidth;
             col++
         ) {
+
             if (!shape[row][col]) {
                 continue;
             }
@@ -517,6 +628,7 @@ function updatePreview(clientX, clientY) {
                 boardCol >= 0 &&
                 boardCol < BOARD_SIZE
             ) {
+
                 const cell =
                     boardElement.children[
                         boardRow * BOARD_SIZE +
@@ -533,13 +645,16 @@ function updatePreview(clientX, clientY) {
     }
 }
 
+
 function clearPreview() {
+
     const cells =
         boardElement.querySelectorAll(
             ".preview, .invalidPreview"
         );
 
     cells.forEach(cell => {
+
         cell.classList.remove(
             "preview",
             "invalidPreview"
@@ -547,21 +662,29 @@ function clearPreview() {
     });
 }
 
+
+/* =========================
+   PLACEMENT
+========================= */
+
 function canPlace(
     shape,
     startRow,
     startCol
 ) {
+
     for (
         let row = 0;
         row < shape.length;
         row++
     ) {
+
         for (
             let col = 0;
             col < shape[row].length;
             col++
         ) {
+
             if (!shape[row][col]) {
                 continue;
             }
@@ -590,11 +713,13 @@ function canPlace(
     return true;
 }
 
+
 function placePiece(
     index,
     startRow,
     startCol
 ) {
+
     const piece = pieces[index];
 
     if (
@@ -612,12 +737,15 @@ function placePiece(
         row < piece.shape.length;
         row++
     ) {
+
         for (
             let col = 0;
             col < piece.shape[row].length;
             col++
         ) {
+
             if (piece.shape[row][col]) {
+
                 board[
                     startRow + row
                 ][
@@ -647,13 +775,22 @@ function placePiece(
         cleared.rows.length ||
         cleared.cols.length
     ) {
+
         animateClear(cleared);
+
     } else {
+
         checkForNewSet();
     }
 }
 
+
+/* =========================
+   CLEARING
+========================= */
+
 function findCompletedLines() {
+
     const rows = [];
     const cols = [];
 
@@ -662,6 +799,7 @@ function findCompletedLines() {
         row < BOARD_SIZE;
         row++
     ) {
+
         let complete = true;
 
         for (
@@ -669,7 +807,9 @@ function findCompletedLines() {
             col < BOARD_SIZE;
             col++
         ) {
+
             if (!board[row][col]) {
+
                 complete = false;
                 break;
             }
@@ -685,6 +825,7 @@ function findCompletedLines() {
         col < BOARD_SIZE;
         col++
     ) {
+
         let complete = true;
 
         for (
@@ -692,7 +833,9 @@ function findCompletedLines() {
             row < BOARD_SIZE;
             row++
         ) {
+
             if (!board[row][col]) {
+
                 complete = false;
                 break;
             }
@@ -704,20 +847,24 @@ function findCompletedLines() {
     }
 
     return {
-        rows,
-        cols
+        rows: rows,
+        cols: cols
     };
 }
 
+
 function animateClear(cleared) {
+
     const cellsToClear = new Set();
 
     cleared.rows.forEach(row => {
+
         for (
             let col = 0;
             col < BOARD_SIZE;
             col++
         ) {
+
             cellsToClear.add(
                 `${row},${col}`
             );
@@ -725,11 +872,13 @@ function animateClear(cleared) {
     });
 
     cleared.cols.forEach(col => {
+
         for (
             let row = 0;
             row < BOARD_SIZE;
             row++
         ) {
+
             cellsToClear.add(
                 `${row},${col}`
             );
@@ -737,6 +886,7 @@ function animateClear(cleared) {
     });
 
     cellsToClear.forEach(key => {
+
         const [row, col] =
             key.split(",").map(Number);
 
@@ -759,7 +909,9 @@ function animateClear(cleared) {
         uniqueCells * 10;
 
     const lineBonus =
-        lineCount * lineCount * 40;
+        lineCount *
+        lineCount *
+        40;
 
     const multiBonus =
         lineCount > 1
@@ -775,10 +927,14 @@ function animateClear(cleared) {
 
     addScore(points);
 
-    showScorePopup(`+${points}`);
+    showScorePopup(
+        `+${points}`
+    );
 
     setTimeout(() => {
+
         cellsToClear.forEach(key => {
+
             const [row, col] =
                 key.split(",").map(Number);
 
@@ -788,13 +944,21 @@ function animateClear(cleared) {
         renderBoard();
 
         checkForNewSet();
+
     }, 350);
 }
 
+
+/* =========================
+   SCORE
+========================= */
+
 function addScore(amount) {
+
     score += amount;
 
     if (score > bestScore) {
+
         bestScore = score;
 
         localStorage.setItem(
@@ -806,17 +970,22 @@ function addScore(amount) {
     updateStats();
 }
 
+
 function updateStats() {
+
     scoreElement.textContent = score;
     bestElement.textContent = bestScore;
     linesElement.textContent = linesCleared;
 }
 
+
 function showScorePopup(text) {
+
     const popup =
         document.createElement("div");
 
     popup.className = "scorePopup";
+
     popup.textContent = text;
 
     popup.style.left = "50%";
@@ -829,10 +998,19 @@ function showScorePopup(text) {
     }, 850);
 }
 
+
+/* =========================
+   GAME STATE
+========================= */
+
 function checkForNewSet() {
+
     if (
-        pieces.every(piece => piece.used)
+        pieces.every(
+            piece => piece.used
+        )
     ) {
+
         generatePieces();
         return;
     }
@@ -842,8 +1020,11 @@ function checkForNewSet() {
     }
 }
 
+
 function hasAnyMove() {
+
     for (const piece of pieces) {
+
         if (piece.used) {
             continue;
         }
@@ -853,11 +1034,13 @@ function hasAnyMove() {
             row < BOARD_SIZE;
             row++
         ) {
+
             for (
                 let col = 0;
                 col < BOARD_SIZE;
                 col++
             ) {
+
                 if (
                     canPlace(
                         piece.shape,
@@ -874,7 +1057,9 @@ function hasAnyMove() {
     return false;
 }
 
+
 function togglePause() {
+
     if (gameOver) {
         return;
     }
@@ -890,7 +1075,9 @@ function togglePause() {
         paused ? "▶" : "Ⅱ";
 }
 
+
 function endGame() {
+
     gameOver = true;
 
     finalScoreElement.textContent =
@@ -901,14 +1088,22 @@ function endGame() {
     );
 }
 
+
 function restartGame() {
+
     score = 0;
     linesCleared = 0;
+
     paused = false;
     gameOver = false;
 
-    pauseOverlay.classList.add("hidden");
-    gameOverOverlay.classList.add("hidden");
+    pauseOverlay.classList.add(
+        "hidden"
+    );
+
+    gameOverOverlay.classList.add(
+        "hidden"
+    );
 
     pauseButton.textContent = "Ⅱ";
 
@@ -916,6 +1111,11 @@ function restartGame() {
     generatePieces();
     updateStats();
 }
+
+
+/* =========================
+   BUTTONS
+========================= */
 
 pauseButton.addEventListener(
     "click",
@@ -937,14 +1137,10 @@ gameOverRestart.addEventListener(
     restartGame
 );
 
-window.addEventListener(
-    "resize",
-    () => {
-        if (dragging) {
-            clearPreview();
-        }
-    }
-);
+
+/* =========================
+   START
+========================= */
 
 createBoard();
 generatePieces();
