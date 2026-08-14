@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Block Blast Space PG1</title>
+    <link rel="stylesheet" href="style1.css">
+</head>
+<body>
+    <div class="backgroundGlow glowOne"></div>
+    <div class="backgroundGlow glowTwo"></div>
+
+    <main class="gameShell">
+        <header class="topBar">
+            <div>
+                <div class="titleRow">
+                    <span class="titleDot"></span>
+                    <h1>Block Space</h1>
+                </div>
+                <p>Place. Clear. Think ahead.</p>
+            </div>
+
+            <div class="topButtons">
+                <button id="pauseButton" class="iconButton" aria-label="Pause">Ⅱ</button>
+                <button id="restartButton" class="iconButton" aria-label="Restart">↻</button>
+            </div>
+        </header>
+
+        <section class="stats">
+            <div class="statBox">
+                <span>Score</span>
+                <strong id="score">0</strong>
+            </div>
+            <div class="statBox">
+                <span>Best</span>
+                <strong id="best">0</strong>
+            </div>
+            <div class="statBox">
+                <span>Lines</span>
+                <strong id="lines">0</strong>
+            </div>
+        </section>
+
+        <section class="gameArea">
+            <div class="boardPanel">
+                <div id="board" class="board"></div>
+
+                <div id="pauseOverlay" class="overlay hidden">
+                    <div class="overlayCard">
+                        <div class="overlayIcon">Ⅱ</div>
+                        <h2>Paused</h2>
+                        <p>Take a moment.</p>
+                        <button id="resumeButton" class="mainButton">Resume</button>
+                    </div>
+                </div>
+
+                <div id="gameOverOverlay" class="overlay hidden">
+                    <div class="overlayCard">
+                        <div class="overlayIcon">✦</div>
+                        <h2>Game Over</h2>
+                        <p>No more moves are available.</p>
+
+                        <div class="finalScore">
+                            <span>Final Score</span>
+                            <strong id="finalScore">0</strong>
+                        </div>
+
+                        <button id="gameOverRestart" class="mainButton">Play Again</button>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="sidePanel">
+                <div class="infoCard">
+                    <span class="smallLabel">CURRENT SET</span>
+                    <h2>Choose a piece</h2>
+                    <p>Drag any block onto the grid. Complete rows or columns to clear them.</p>
+                </div>
+
+                <div id="pieces" class="pieces"></div>
+
+                <div class="hintCard">
+                    <span class="hintIcon">◆</span>
+                    <div>
+                        <strong>Clear more</strong>
+                        <p>Multiple lines in one move give bigger bonuses.</p>
+                    </div>
+                </div>
+            </aside>
+        </section>
+
+        <footer>
+            <span>Block Space</span>
+            <span>•</span>
+            <span>Best score is saved automatically</span>
+        </footer>
+    </main>
+
+    <script src="Block Blast Script.js"></script>
+</body>
+</html>
