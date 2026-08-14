@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Block Blast Space PG1</title>
+    <title>Block Space</title>
     <link rel="stylesheet" href="style1.css">
 </head>
 <body>
@@ -21,8 +21,8 @@
             </div>
 
             <div class="topButtons">
-                <button id="pauseButton" class="iconButton" aria-label="Pause">Ⅱ</button>
-                <button id="restartButton" class="iconButton" aria-label="Restart">↻</button>
+                <button id="pauseButton" class="iconButton">Ⅱ</button>
+                <button id="restartButton" class="iconButton">↻</button>
             </div>
         </header>
 
@@ -31,10 +31,12 @@
                 <span>Score</span>
                 <strong id="score">0</strong>
             </div>
+
             <div class="statBox">
                 <span>Best</span>
                 <strong id="best">0</strong>
             </div>
+
             <div class="statBox">
                 <span>Lines</span>
                 <strong id="lines">0</strong>
@@ -50,7 +52,9 @@
                         <div class="overlayIcon">Ⅱ</div>
                         <h2>Paused</h2>
                         <p>Take a moment.</p>
-                        <button id="resumeButton" class="mainButton">Resume</button>
+                        <button id="resumeButton" class="mainButton">
+                            Resume
+                        </button>
                     </div>
                 </div>
 
@@ -65,7 +69,9 @@
                             <strong id="finalScore">0</strong>
                         </div>
 
-                        <button id="gameOverRestart" class="mainButton">Play Again</button>
+                        <button id="gameOverRestart" class="mainButton">
+                            Play Again
+                        </button>
                     </div>
                 </div>
             </div>
@@ -74,16 +80,22 @@
                 <div class="infoCard">
                     <span class="smallLabel">CURRENT SET</span>
                     <h2>Choose a piece</h2>
-                    <p>Drag any block onto the grid. Complete rows or columns to clear them.</p>
+                    <p>
+                        Drag any block onto the grid. Complete rows or
+                        columns to clear them.
+                    </p>
                 </div>
 
                 <div id="pieces" class="pieces"></div>
 
                 <div class="hintCard">
                     <span class="hintIcon">◆</span>
+
                     <div>
                         <strong>Clear more</strong>
-                        <p>Multiple lines in one move give bigger bonuses.</p>
+                        <p>
+                            Multiple lines in one move give bigger bonuses.
+                        </p>
                     </div>
                 </div>
             </aside>
