@@ -30,7 +30,6 @@ const COLORS = [
 ];
 
 const SHAPES = [
-
     [[1]],
 
     [[1, 1]],
@@ -244,11 +243,6 @@ function renderPieces() {
             document.createElement("div");
 
         miniGrid.className = "miniGrid";
-
-        /*
-            Larger pieces make them much easier
-            to grab on both mouse and touch.
-        */
 
         miniGrid.style.gridTemplateColumns =
             `repeat(${width}, 27px)`;
@@ -464,32 +458,17 @@ function updatePreview(clientX, clientY) {
     const boardRect =
         boardElement.getBoundingClientRect();
 
-    /*
-        Extra border protection.
-        The pointer must actually be over
-        the board itself.
-    */
-
-    const border = 3;
-
-    if (
-        clientX < boardRect.left + border ||
-        clientX > boardRect.right - border ||
-        clientY < boardRect.top + border ||
-        clientY > boardRect.bottom - border
-    ) {
-        preview = null;
-        return;
-    }
-
-    const shape =
-        dragging.piece.shape;
-
     const cellWidth =
         boardRect.width / BOARD_SIZE;
 
     const cellHeight =
         boardRect.height / BOARD_SIZE;
+
+    /*
+        Instead of rejecting the pointer when it
+        goes outside the board, allow it to go
+        outside and clamp the position to the edge.
+    */
 
     const x =
         clientX - boardRect.left;
@@ -503,19 +482,20 @@ function updatePreview(clientX, clientY) {
     const centerRow =
         Math.floor(y / cellHeight);
 
+    const shape =
+        dragging.piece.shape;
+
     const shapeWidth =
         shape[0].length;
 
     const shapeHeight =
         shape.length;
 
-    /*
-        Find the actual first block so the
-        preview feels natural when grabbed.
-    */
-
     let firstFilledRow = shapeHeight;
     let firstFilledCol = shapeWidth;
+
+    let lastFilledRow = -1;
+    let lastFilledCol = -1;
 
     for (
         let row = 0;
@@ -542,9 +522,26 @@ function updatePreview(clientX, clientY) {
                         firstFilledCol,
                         col
                     );
+
+                lastFilledRow =
+                    Math.max(
+                        lastFilledRow,
+                        row
+                    );
+
+                lastFilledCol =
+                    Math.max(
+                        lastFilledCol,
+                        col
+                    );
             }
         }
     }
+
+    /*
+        Work out where the piece would naturally
+        go based on the pointer.
+    */
 
     let startRow =
         centerRow -
@@ -559,33 +556,44 @@ function updatePreview(clientX, clientY) {
         1;
 
     /*
-        Keep the entire shape inside
-        the 8 by 8 board.
+        Clamp the entire piece inside the 8 x 8 board.
+
+        This is the important fix.
     */
 
-    while (
-        startRow < 0 &&
-        shape.some((row, r) =>
-            row.some((value, c) =>
-                value &&
-                startRow + r < 0
-            )
-        )
-    ) {
-        startRow++;
-    }
+    const minimumRow =
+        -firstFilledRow;
 
-    while (
-        startCol < 0 &&
-        shape.some((row, r) =>
-            row.some((value, c) =>
-                value &&
-                startCol + c < 0
+    const maximumRow =
+        BOARD_SIZE -
+        1 -
+        lastFilledRow;
+
+    const minimumCol =
+        -firstFilledCol;
+
+    const maximumCol =
+        BOARD_SIZE -
+        1 -
+        lastFilledCol;
+
+    startRow =
+        Math.max(
+            minimumRow,
+            Math.min(
+                maximumRow,
+                startRow
             )
-        )
-    ) {
-        startCol++;
-    }
+        );
+
+    startCol =
+        Math.max(
+            minimumCol,
+            Math.min(
+                maximumCol,
+                startCol
+            )
+        );
 
     const valid =
         canPlace(
@@ -599,6 +607,10 @@ function updatePreview(clientX, clientY) {
         col: startCol,
         valid: valid
     };
+
+    /*
+        Draw the preview.
+    */
 
     for (
         let row = 0;
