@@ -14,22 +14,9 @@ body {
     font-family: Arial, Helvetica, sans-serif;
     color: #f2fbf8;
     background:
-        radial-gradient(
-            circle at 15% 10%,
-            rgba(22, 151, 113, 0.16),
-            transparent 32%
-        ),
-        radial-gradient(
-            circle at 85% 85%,
-            rgba(32, 102, 190, 0.18),
-            transparent 35%
-        ),
-        linear-gradient(
-            135deg,
-            #061b18,
-            #071c2a 52%,
-            #06151f
-        );
+        radial-gradient(circle at 15% 10%, rgba(22, 151, 113, 0.16), transparent 32%),
+        radial-gradient(circle at 85% 85%, rgba(32, 102, 190, 0.18), transparent 35%),
+        linear-gradient(135deg, #061b18, #071c2a 52%, #06151f);
     overflow-x: hidden;
     user-select: none;
 }
@@ -82,6 +69,7 @@ button {
 .titleDot {
     width: 11px;
     height: 11px;
+    flex-shrink: 0;
     border-radius: 50%;
     background: #35d69c;
     box-shadow: 0 0 16px rgba(53, 214, 156, 0.8);
@@ -134,12 +122,7 @@ h1 {
     padding: 14px 17px;
     border: 1px solid rgba(131, 208, 192, 0.14);
     border-radius: 16px;
-    background:
-        linear-gradient(
-            145deg,
-            rgba(11, 43, 44, 0.86),
-            rgba(8, 31, 41, 0.86)
-        );
+    background: linear-gradient(145deg, rgba(11, 43, 44, 0.86), rgba(8, 31, 41, 0.86));
     box-shadow: 0 12px 28px rgba(0, 0, 0, 0.17);
 }
 
@@ -157,56 +140,100 @@ h1 {
     color: #eafff9;
 }
 
+
+/* =========================
+   DESKTOP GAME LAYOUT
+========================= */
+
 .gameArea {
     display: grid;
-    grid-template-columns: minmax(0, 720px) 300px;
+
+    /*
+        The board gets its own square space.
+        It can never be stretched vertically.
+    */
+    grid-template-columns: minmax(0, 1fr) 300px;
+
     gap: 17px;
+
     align-items: start;
 }
 
 .boardPanel {
     position: relative;
-    padding: clamp(10px, 2vw, 18px);
+
+    width: 100%;
+
+    /*
+        This is important.
+        The panel itself is square.
+    */
+    aspect-ratio: 1 / 1;
+
+    min-width: 0;
+    min-height: 0;
+
+    padding: 14px;
+
     border: 2px solid rgba(83, 220, 178, 0.28);
     border-radius: 22px;
-    background:
-        linear-gradient(
-            145deg,
-            rgba(8, 34, 39, 0.94),
-            rgba(6, 27, 38, 0.94)
-        );
+
+    background: linear-gradient(
+        145deg,
+        rgba(8, 34, 39, 0.94),
+        rgba(6, 27, 38, 0.94)
+    );
+
     box-shadow:
         0 24px 60px rgba(0, 0, 0, 0.27),
         inset 0 1px rgba(255, 255, 255, 0.025),
         0 0 25px rgba(47, 201, 153, 0.05);
+
+    overflow: hidden;
 }
 
 .board {
     width: 100%;
-    aspect-ratio: 1 / 1;
+    height: 100%;
+
+    /*
+        FORCE the board to be exactly 8 x 8.
+    */
     display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    grid-template-rows: repeat(8, minmax(0, 1fr));
 
-    /* IMPORTANT: 8 by 8 */
-    grid-template-columns: repeat(8, 1fr);
-    grid-template-rows: repeat(8, 1fr);
-
-    gap: clamp(4px, 0.65vw, 7px);
+    gap: clamp(4px, 0.55vw, 7px);
 
     padding: 3px;
 
+    min-width: 0;
+    min-height: 0;
+
     touch-action: none;
+
     overflow: hidden;
+
+    border: 1px solid rgba(84, 220, 178, 0.13);
+    border-radius: 13px;
 }
 
 .cell {
     position: relative;
+
+    width: 100%;
+    height: 100%;
+
     min-width: 0;
     min-height: 0;
+
     border-radius: clamp(5px, 0.8vw, 9px);
 
     background: rgba(13, 55, 60, 0.54);
 
     border: 1px solid rgba(123, 210, 193, 0.075);
+
+    overflow: hidden;
 
     transition:
         background 0.12s ease,
@@ -225,21 +252,26 @@ h1 {
 
 .cell.filled::after {
     content: "";
+
     position: absolute;
+
     left: 4px;
     right: 4px;
     top: 3px;
+
     height: 23%;
+
     border-radius: 5px;
+
     background: rgba(255, 255, 255, 0.13);
+
     pointer-events: none;
 }
 
 .cell.preview {
     background: rgba(69, 221, 166, 0.38);
 
-    border-color:
-        rgba(107, 245, 196, 0.7);
+    border-color: rgba(107, 245, 196, 0.7);
 
     box-shadow:
         inset 0 0 12px rgba(48, 222, 163, 0.2),
@@ -249,17 +281,14 @@ h1 {
 .cell.invalidPreview {
     background: rgba(232, 89, 91, 0.3);
 
-    border-color:
-        rgba(255, 122, 122, 0.65);
+    border-color: rgba(255, 122, 122, 0.65);
 }
 
 .cell.clearing {
-    animation:
-        clearCell 0.34s ease forwards;
+    animation: clearCell 0.34s ease forwards;
 }
 
 @keyframes clearCell {
-
     0% {
         transform: scale(1);
         opacity: 1;
@@ -276,10 +305,17 @@ h1 {
     }
 }
 
+
+/* =========================
+   SIDE PANEL
+========================= */
+
 .sidePanel {
     display: flex;
     flex-direction: column;
     gap: 13px;
+
+    min-width: 0;
 }
 
 .infoCard,
@@ -287,8 +323,7 @@ h1 {
     border: 1px solid rgba(126, 205, 190, 0.14);
     border-radius: 18px;
     background: rgba(8, 35, 41, 0.77);
-    box-shadow:
-        0 13px 35px rgba(0, 0, 0, 0.17);
+    box-shadow: 0 13px 35px rgba(0, 0, 0, 0.17);
 }
 
 .infoCard {
@@ -318,15 +353,20 @@ h1 {
     min-height: 240px;
 
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 
     gap: 10px;
+
     align-items: center;
+
+    min-width: 0;
 }
 
 .piece {
     position: relative;
 
+    min-width: 0;
     min-height: 125px;
 
     display: flex;
@@ -342,10 +382,6 @@ h1 {
 
     cursor: grab;
 
-    /*
-        Makes the whole piece area easier
-        to grab on touch screens.
-    */
     touch-action: none;
 
     transition:
@@ -356,9 +392,7 @@ h1 {
 
 .piece:hover {
     transform: translateY(-3px);
-
-    border-color:
-        rgba(61, 211, 161, 0.38);
+    border-color: rgba(61, 211, 161, 0.38);
 }
 
 .piece:active {
@@ -383,7 +417,6 @@ h1 {
 .miniCell {
     width: 27px;
     height: 27px;
-
     border-radius: 6px;
 }
 
@@ -400,71 +433,47 @@ h1 {
         0 3px 7px rgba(0, 0, 0, 0.22);
 }
 
+
+/* =========================
+   BLOCK COLORS
+========================= */
+
 .green {
-    background:
-        linear-gradient(
-            145deg,
-            #40dfa5,
-            #19a879
-        );
+    background: linear-gradient(145deg, #40dfa5, #19a879);
 }
 
 .blue {
-    background:
-        linear-gradient(
-            145deg,
-            #53b8ff,
-            #2777d2
-        );
+    background: linear-gradient(145deg, #53b8ff, #2777d2);
 }
 
 .purple {
-    background:
-        linear-gradient(
-            145deg,
-            #b889ff,
-            #7652ce
-        );
+    background: linear-gradient(145deg, #b889ff, #7652ce);
 }
 
 .orange {
-    background:
-        linear-gradient(
-            145deg,
-            #ffbd68,
-            #dc7736
-        );
+    background: linear-gradient(145deg, #ffbd68, #dc7736);
 }
 
 .pink {
-    background:
-        linear-gradient(
-            145deg,
-            #ff86b7,
-            #d44f84
-        );
+    background: linear-gradient(145deg, #ff86b7, #d44f84);
 }
 
 .cyan {
-    background:
-        linear-gradient(
-            145deg,
-            #5de8e5,
-            #29a9b5
-        );
+    background: linear-gradient(145deg, #5de8e5, #29a9b5);
 }
 
 .yellow {
-    background:
-        linear-gradient(
-            145deg,
-            #f5df67,
-            #c2a72f
-        );
+    background: linear-gradient(145deg, #f5df67, #c2a72f);
 }
+
+
+/* =========================
+   HINT
+========================= */
 
 .hintCard {
     display: flex;
+
     gap: 12px;
 
     padding: 15px;
@@ -479,16 +488,15 @@ h1 {
     display: grid;
     place-items: center;
 
+    flex-shrink: 0;
+
     border-radius: 9px;
 
-    background:
-        rgba(47, 196, 145, 0.12);
+    background: rgba(47, 196, 145, 0.12);
 
     color: #46d8a4;
 
     font-size: 12px;
-
-    flex-shrink: 0;
 }
 
 .hintCard strong {
@@ -501,6 +509,11 @@ h1 {
     line-height: 1.4;
     margin: 4px 0 0;
 }
+
+
+/* =========================
+   FOOTER
+========================= */
 
 footer {
     display: flex;
@@ -515,8 +528,14 @@ footer {
     padding-top: 17px;
 }
 
+
+/* =========================
+   OVERLAYS
+========================= */
+
 .overlay {
     position: absolute;
+
     inset: 0;
 
     z-index: 20;
@@ -526,8 +545,7 @@ footer {
 
     border-radius: 22px;
 
-    background:
-        rgba(3, 16, 22, 0.76);
+    background: rgba(3, 16, 22, 0.76);
 
     backdrop-filter: blur(8px);
 }
@@ -547,15 +565,13 @@ footer {
 
     border-radius: 22px;
 
-    background:
-        linear-gradient(
-            145deg,
-            rgba(12, 48, 50, 0.96),
-            rgba(7, 30, 40, 0.96)
-        );
+    background: linear-gradient(
+        145deg,
+        rgba(12, 48, 50, 0.96),
+        rgba(7, 30, 40, 0.96)
+    );
 
-    box-shadow:
-        0 25px 60px rgba(0, 0, 0, 0.35);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35);
 }
 
 .overlayIcon {
@@ -571,8 +587,7 @@ footer {
 
     color: #53dba9;
 
-    background:
-        rgba(57, 210, 158, 0.11);
+    background: rgba(57, 210, 158, 0.11);
 
     font-size: 24px;
 }
@@ -623,12 +638,11 @@ footer {
 
     color: #03251d;
 
-    background:
-        linear-gradient(
-            135deg,
-            #54e2af,
-            #31bb91
-        );
+    background: linear-gradient(
+        135deg,
+        #54e2af,
+        #31bb91
+    );
 
     font-weight: bold;
 
@@ -644,6 +658,11 @@ footer {
     transform: translateY(-2px);
     filter: brightness(1.06);
 }
+
+
+/* =========================
+   SCORE POPUP
+========================= */
 
 .scorePopup {
     position: fixed;
@@ -661,18 +680,14 @@ footer {
     text-shadow:
         0 0 13px rgba(68, 226, 164, 0.6);
 
-    animation:
-        scoreFloat 0.8s ease forwards;
+    animation: scoreFloat 0.8s ease forwards;
 }
 
 @keyframes scoreFloat {
 
     0% {
         opacity: 0;
-
-        transform:
-            translateY(10px)
-            scale(0.8);
+        transform: translateY(10px) scale(0.8);
     }
 
     20% {
@@ -681,12 +696,14 @@ footer {
 
     100% {
         opacity: 0;
-
-        transform:
-            translateY(-45px)
-            scale(1.08);
+        transform: translateY(-45px) scale(1.08);
     }
 }
+
+
+/* =========================
+   TABLET
+========================= */
 
 @media (max-width: 850px) {
 
@@ -696,9 +713,7 @@ footer {
 
     .sidePanel {
         display: grid;
-
-        grid-template-columns:
-            1fr 1fr;
+        grid-template-columns: 1fr 1fr;
     }
 
     .pieces {
@@ -710,14 +725,15 @@ footer {
     }
 }
 
+
+/* =========================
+   MOBILE
+========================= */
+
 @media (max-width: 560px) {
 
     .gameShell {
-        width: min(
-            100% - 14px,
-            500px
-        );
-
+        width: min(100% - 14px, 500px);
         padding-top: 13px;
     }
 
@@ -753,15 +769,24 @@ footer {
         font-size: 19px;
     }
 
+    /*
+        Keep the board square on mobile too.
+    */
+
     .boardPanel {
+        width: 100%;
+        aspect-ratio: 1 / 1;
+
         padding: 8px;
 
         border-width: 2px;
-
         border-radius: 16px;
     }
 
     .board {
+        width: 100%;
+        height: 100%;
+
         gap: 3px;
         padding: 2px;
     }
@@ -809,6 +834,11 @@ footer {
         font-size: 9px;
     }
 }
+
+
+/* =========================
+   SMALL PHONES
+========================= */
 
 @media (max-width: 360px) {
 
