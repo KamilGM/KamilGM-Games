@@ -40,6 +40,10 @@ const SHAPES = [
 
     [[1], [1], [1]],
 
+    [[1, 1, 1, 1]],
+
+    [[1], [1], [1], [1]],
+
     [
         [1, 1],
         [1, 1]
@@ -107,15 +111,6 @@ const SHAPES = [
         [1, 1, 0]
     ],
 
-    [[1, 1, 1, 1]],
-
-    [
-        [1],
-        [1],
-        [1],
-        [1]
-    ],
-
     [
         [1, 1, 1],
         [1, 1, 1]
@@ -156,7 +151,7 @@ let preview = null;
 
 
 /* =========================
-   BOARD
+   CREATE BOARD
 ========================= */
 
 function createBoard() {
@@ -186,7 +181,7 @@ function createBoard() {
 
 
 /* =========================
-   PIECES
+   CREATE PIECE
 ========================= */
 
 function createPiece() {
@@ -198,14 +193,20 @@ function createPiece() {
 
     return {
         shape: shape,
+
         color:
             COLORS[
                 Math.floor(Math.random() * COLORS.length)
             ],
+
         used: false
     };
 }
 
+
+/* =========================
+   GENERATE PIECES
+========================= */
 
 function generatePieces() {
 
@@ -218,6 +219,10 @@ function generatePieces() {
     renderPieces();
 }
 
+
+/* =========================
+   RENDER PIECES
+========================= */
 
 function renderPieces() {
 
@@ -294,7 +299,7 @@ function renderPieces() {
 
 
 /* =========================
-   BOARD RENDER
+   RENDER BOARD
 ========================= */
 
 function renderBoard() {
@@ -306,7 +311,9 @@ function renderBoard() {
         for (let col = 0; col < BOARD_SIZE; col++) {
 
             const cell =
-                cells[row * BOARD_SIZE + col];
+                cells[
+                    row * BOARD_SIZE + col
+                ];
 
             cell.className = "cell";
 
@@ -324,10 +331,14 @@ function renderBoard() {
 
 
 /* =========================
-   DRAGGING
+   START DRAG
 ========================= */
 
-function startDrag(event, index, element) {
+function startDrag(
+    event,
+    index,
+    element
+) {
 
     if (
         paused ||
@@ -384,6 +395,10 @@ function startDrag(event, index, element) {
 }
 
 
+/* =========================
+   POINTER MOVE
+========================= */
+
 function handlePointerMove(event) {
 
     if (
@@ -401,6 +416,10 @@ function handlePointerMove(event) {
     );
 }
 
+
+/* =========================
+   POINTER UP
+========================= */
 
 function handlePointerUp(event) {
 
@@ -444,10 +463,13 @@ function handlePointerUp(event) {
 
 
 /* =========================
-   PREVIEW
+   UPDATE PREVIEW
 ========================= */
 
-function updatePreview(clientX, clientY) {
+function updatePreview(
+    clientX,
+    clientY
+) {
 
     clearPreview();
 
@@ -464,38 +486,26 @@ function updatePreview(clientX, clientY) {
     const cellHeight =
         boardRect.height / BOARD_SIZE;
 
-    /*
-        Instead of rejecting the pointer when it
-        goes outside the board, allow it to go
-        outside and clamp the position to the edge.
-    */
-
-    const x =
-        clientX - boardRect.left;
-
-    const y =
-        clientY - boardRect.top;
-
-    const centerCol =
-        Math.floor(x / cellWidth);
-
-    const centerRow =
-        Math.floor(y / cellHeight);
-
     const shape =
         dragging.piece.shape;
-
-    const shapeWidth =
-        shape[0].length;
 
     const shapeHeight =
         shape.length;
 
-    let firstFilledRow = shapeHeight;
-    let firstFilledCol = shapeWidth;
+    const shapeWidth =
+        shape[0].length;
 
-    let lastFilledRow = -1;
-    let lastFilledCol = -1;
+
+    /*
+        Find the real occupied edges
+        of the shape.
+    */
+
+    let firstRow = shapeHeight;
+    let firstCol = shapeWidth;
+
+    let lastRow = -1;
+    let lastCol = -1;
 
     for (
         let row = 0;
@@ -509,91 +519,150 @@ function updatePreview(clientX, clientY) {
             col++
         ) {
 
-            if (shape[row][col]) {
-
-                firstFilledRow =
-                    Math.min(
-                        firstFilledRow,
-                        row
-                    );
-
-                firstFilledCol =
-                    Math.min(
-                        firstFilledCol,
-                        col
-                    );
-
-                lastFilledRow =
-                    Math.max(
-                        lastFilledRow,
-                        row
-                    );
-
-                lastFilledCol =
-                    Math.max(
-                        lastFilledCol,
-                        col
-                    );
+            if (!shape[row][col]) {
+                continue;
             }
+
+            firstRow =
+                Math.min(
+                    firstRow,
+                    row
+                );
+
+            firstCol =
+                Math.min(
+                    firstCol,
+                    col
+                );
+
+            lastRow =
+                Math.max(
+                    lastRow,
+                    row
+                );
+
+            lastCol =
+                Math.max(
+                    lastCol,
+                    col
+                );
         }
     }
 
+
     /*
-        Work out where the piece would naturally
-        go based on the pointer.
+        The pointer is allowed to be anywhere.
+
+        It does NOT matter if it is outside
+        the visible 8 x 8 board.
     */
 
-    let startRow =
-        centerRow -
-        Math.floor(shapeHeight / 2) -
-        firstFilledRow +
-        1;
+    const pointerX =
+        clientX -
+        boardRect.left;
+
+    const pointerY =
+        clientY -
+        boardRect.top;
+
+
+    /*
+        Convert pointer to a board position.
+    */
+
+    let pointerCol =
+        Math.floor(
+            pointerX / cellWidth
+        );
+
+    let pointerRow =
+        Math.floor(
+            pointerY / cellHeight
+        );
+
+
+    /*
+        Position the piece around the pointer.
+    */
 
     let startCol =
-        centerCol -
-        Math.floor(shapeWidth / 2) -
-        firstFilledCol +
-        1;
+        pointerCol -
+        Math.floor(shapeWidth / 2);
+
+    let startRow =
+        pointerRow -
+        Math.floor(shapeHeight / 2);
+
 
     /*
-        Clamp the entire piece inside the 8 x 8 board.
+        ==================================================
+        INVISIBLE AREA / EDGE SNAP
+        ==================================================
 
-        This is the important fix.
+        These limits mean the piece can never be
+        positioned outside the actual 8 x 8 board.
+
+        If the pointer goes outside, the piece simply
+        stays at the closest possible edge.
     */
 
-    const minimumRow =
-        -firstFilledRow;
-
-    const maximumRow =
-        BOARD_SIZE -
-        1 -
-        lastFilledRow;
-
     const minimumCol =
-        -firstFilledCol;
+        -firstCol;
 
     const maximumCol =
         BOARD_SIZE -
         1 -
-        lastFilledCol;
+        lastCol;
 
-    startRow =
-        Math.max(
-            minimumRow,
-            Math.min(
-                maximumRow,
-                startRow
-            )
-        );
+    const minimumRow =
+        -firstRow;
 
-    startCol =
-        Math.max(
-            minimumCol,
-            Math.min(
-                maximumCol,
-                startCol
-            )
-        );
+    const maximumRow =
+        BOARD_SIZE -
+        1 -
+        lastRow;
+
+
+    /*
+        LEFT EDGE
+    */
+
+    if (startCol < minimumCol) {
+        startCol = minimumCol;
+    }
+
+
+    /*
+        RIGHT EDGE
+    */
+
+    if (startCol > maximumCol) {
+        startCol = maximumCol;
+    }
+
+
+    /*
+        TOP EDGE
+    */
+
+    if (startRow < minimumRow) {
+        startRow = minimumRow;
+    }
+
+
+    /*
+        BOTTOM EDGE
+    */
+
+    if (startRow > maximumRow) {
+        startRow = maximumRow;
+    }
+
+
+    /*
+        Check whether the snapped position
+        is actually available.
+    */
 
     const valid =
         canPlace(
@@ -602,14 +671,16 @@ function updatePreview(clientX, clientY) {
             startCol
         );
 
+
     preview = {
         row: startRow,
         col: startCol,
         valid: valid
     };
 
+
     /*
-        Draw the preview.
+        Draw preview.
     */
 
     for (
@@ -633,6 +704,11 @@ function updatePreview(clientX, clientY) {
 
             const boardCol =
                 startCol + col;
+
+
+            /*
+                Never draw outside the real board.
+            */
 
             if (
                 boardRow >= 0 &&
@@ -658,6 +734,10 @@ function updatePreview(clientX, clientY) {
 }
 
 
+/* =========================
+   CLEAR PREVIEW
+========================= */
+
 function clearPreview() {
 
     const cells =
@@ -676,7 +756,7 @@ function clearPreview() {
 
 
 /* =========================
-   PLACEMENT
+   CHECK PLACEMENT
 ========================= */
 
 function canPlace(
@@ -707,14 +787,25 @@ function canPlace(
             const boardCol =
                 startCol + col;
 
+
+            /*
+                Outside the board = impossible.
+            */
+
             if (
                 boardRow < 0 ||
                 boardRow >= BOARD_SIZE ||
                 boardCol < 0 ||
                 boardCol >= BOARD_SIZE
             ) {
+
                 return false;
             }
+
+
+            /*
+                Existing block = impossible.
+            */
 
             if (board[boardRow][boardCol]) {
                 return false;
@@ -725,6 +816,10 @@ function canPlace(
     return true;
 }
 
+
+/* =========================
+   PLACE PIECE
+========================= */
 
 function placePiece(
     index,
@@ -743,6 +838,12 @@ function placePiece(
     ) {
         return;
     }
+
+
+    /*
+        Put every occupied shape cell
+        onto the board.
+    */
 
     for (
         let row = 0;
@@ -767,7 +868,13 @@ function placePiece(
         }
     }
 
+
     piece.used = true;
+
+
+    /*
+        Basic placement score.
+    */
 
     const blockCount =
         piece.shape
@@ -775,13 +882,22 @@ function placePiece(
             .filter(Boolean)
             .length;
 
-    addScore(blockCount * 2);
+    addScore(
+        blockCount * 2
+    );
+
 
     renderBoard();
     renderPieces();
 
+
+    /*
+        Check completed rows and columns.
+    */
+
     const cleared =
         findCompletedLines();
+
 
     if (
         cleared.rows.length ||
@@ -798,13 +914,18 @@ function placePiece(
 
 
 /* =========================
-   CLEARING
+   FIND COMPLETED LINES
 ========================= */
 
 function findCompletedLines() {
 
     const rows = [];
     const cols = [];
+
+
+    /*
+        Rows.
+    */
 
     for (
         let row = 0;
@@ -832,6 +953,11 @@ function findCompletedLines() {
         }
     }
 
+
+    /*
+        Columns.
+    */
+
     for (
         let col = 0;
         col < BOARD_SIZE;
@@ -858,6 +984,7 @@ function findCompletedLines() {
         }
     }
 
+
     return {
         rows: rows,
         cols: cols
@@ -865,9 +992,19 @@ function findCompletedLines() {
 }
 
 
+/* =========================
+   ANIMATE CLEAR
+========================= */
+
 function animateClear(cleared) {
 
-    const cellsToClear = new Set();
+    const cellsToClear =
+        new Set();
+
+
+    /*
+        Add complete rows.
+    */
 
     cleared.rows.forEach(row => {
 
@@ -883,6 +1020,11 @@ function animateClear(cleared) {
         }
     });
 
+
+    /*
+        Add complete columns.
+    */
+
     cleared.cols.forEach(col => {
 
         for (
@@ -897,18 +1039,31 @@ function animateClear(cleared) {
         }
     });
 
+
+    /*
+        Animate them.
+    */
+
     cellsToClear.forEach(key => {
 
-        const [row, col] =
-            key.split(",").map(Number);
+        const [
+            row,
+            col
+        ] =
+            key
+                .split(",")
+                .map(Number);
 
         const cell =
             boardElement.children[
                 row * BOARD_SIZE + col
             ];
 
-        cell.classList.add("clearing");
+        cell.classList.add(
+            "clearing"
+        );
     });
+
 
     const lineCount =
         cleared.rows.length +
@@ -916,6 +1071,11 @@ function animateClear(cleared) {
 
     const uniqueCells =
         cellsToClear.size;
+
+
+    /*
+        Scoring.
+    */
 
     const basePoints =
         uniqueCells * 10;
@@ -935,6 +1095,7 @@ function animateClear(cleared) {
         lineBonus +
         multiBonus;
 
+
     linesCleared += lineCount;
 
     addScore(points);
@@ -943,15 +1104,27 @@ function animateClear(cleared) {
         `+${points}`
     );
 
+
+    /*
+        Actually remove the cells
+        after the animation.
+    */
+
     setTimeout(() => {
 
         cellsToClear.forEach(key => {
 
-            const [row, col] =
-                key.split(",").map(Number);
+            const [
+                row,
+                col
+            ] =
+                key
+                    .split(",")
+                    .map(Number);
 
             board[row][col] = null;
         });
+
 
         renderBoard();
 
@@ -969,6 +1142,7 @@ function addScore(amount) {
 
     score += amount;
 
+
     if (score > bestScore) {
 
         bestScore = score;
@@ -979,43 +1153,67 @@ function addScore(amount) {
         );
     }
 
+
     updateStats();
 }
 
 
 function updateStats() {
 
-    scoreElement.textContent = score;
-    bestElement.textContent = bestScore;
-    linesElement.textContent = linesCleared;
+    scoreElement.textContent =
+        score;
+
+    bestElement.textContent =
+        bestScore;
+
+    linesElement.textContent =
+        linesCleared;
 }
 
+
+/* =========================
+   SCORE POPUP
+========================= */
 
 function showScorePopup(text) {
 
     const popup =
         document.createElement("div");
 
-    popup.className = "scorePopup";
+    popup.className =
+        "scorePopup";
 
-    popup.textContent = text;
+    popup.textContent =
+        text;
 
-    popup.style.left = "50%";
-    popup.style.top = "45%";
+    popup.style.left =
+        "50%";
 
-    document.body.appendChild(popup);
+    popup.style.top =
+        "45%";
+
+    document.body.appendChild(
+        popup
+    );
+
 
     setTimeout(() => {
+
         popup.remove();
+
     }, 850);
 }
 
 
 /* =========================
-   GAME STATE
+   CHECK FOR NEW PIECES
 ========================= */
 
 function checkForNewSet() {
+
+    /*
+        All three pieces have been used.
+    */
 
     if (
         pieces.every(
@@ -1024,14 +1222,25 @@ function checkForNewSet() {
     ) {
 
         generatePieces();
+
         return;
     }
+
+
+    /*
+        If none of the remaining pieces
+        can fit anywhere, game over.
+    */
 
     if (!hasAnyMove()) {
         endGame();
     }
 }
 
+
+/* =========================
+   CHECK POSSIBLE MOVES
+========================= */
 
 function hasAnyMove() {
 
@@ -1040,6 +1249,7 @@ function hasAnyMove() {
         if (piece.used) {
             continue;
         }
+
 
         for (
             let row = 0;
@@ -1060,15 +1270,21 @@ function hasAnyMove() {
                         col
                     )
                 ) {
+
                     return true;
                 }
             }
         }
     }
 
+
     return false;
 }
 
+
+/* =========================
+   PAUSE
+========================= */
 
 function togglePause() {
 
@@ -1078,15 +1294,23 @@ function togglePause() {
 
     paused = !paused;
 
+
     pauseOverlay.classList.toggle(
         "hidden",
         !paused
     );
 
+
     pauseButton.textContent =
-        paused ? "▶" : "Ⅱ";
+        paused
+            ? "▶"
+            : "Ⅱ";
 }
 
+
+/* =========================
+   GAME OVER
+========================= */
 
 function endGame() {
 
@@ -1101,13 +1325,26 @@ function endGame() {
 }
 
 
+/* =========================
+   RESTART
+========================= */
+
 function restartGame() {
 
     score = 0;
+
     linesCleared = 0;
 
     paused = false;
+
     gameOver = false;
+
+    dragging = null;
+
+    pointerId = null;
+
+    preview = null;
+
 
     pauseOverlay.classList.add(
         "hidden"
@@ -1117,10 +1354,15 @@ function restartGame() {
         "hidden"
     );
 
-    pauseButton.textContent = "Ⅱ";
+
+    pauseButton.textContent =
+        "Ⅱ";
+
 
     createBoard();
+
     generatePieces();
+
     updateStats();
 }
 
@@ -1151,9 +1393,11 @@ gameOverRestart.addEventListener(
 
 
 /* =========================
-   START
+   START GAME
 ========================= */
 
 createBoard();
+
 generatePieces();
+
 updateStats();
