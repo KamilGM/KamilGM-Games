@@ -359,8 +359,9 @@
       await scaffolding.loadProject(projectData);
       setProgress(1);
       loadingScreen.hidden = true;
+      // add 2 second delay before starting so bullet doesn't move immediately
       if (true) {
-        scaffolding.start();
+        setTimeout(() => scaffolding.start(), 2000);
       } else {
         launchScreen.hidden = false;
         launchScreen.addEventListener('click', () => {
