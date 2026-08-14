@@ -1,6 +1,6 @@
 "use strict";
 
-const BOARD_SIZE = 10;
+const BOARD_SIZE = 8;
 const PIECE_COUNT = 3;
 
 const boardElement = document.getElementById("board");
@@ -140,9 +140,13 @@ const SHAPES = [
 
 let board = [];
 let pieces = [];
+
 let score = 0;
-let bestScore = Number(localStorage.getItem("blockSpaceBest")) || 0;
+let bestScore =
+    Number(localStorage.getItem("blockSpaceBest")) || 0;
+
 let linesCleared = 0;
+
 let paused = false;
 let gameOver = false;
 
@@ -161,9 +165,12 @@ function createBoard() {
     for (let row = 0; row < BOARD_SIZE; row++) {
         for (let col = 0; col < BOARD_SIZE; col++) {
             const cell = document.createElement("div");
+
             cell.className = "cell";
+
             cell.dataset.row = row;
             cell.dataset.col = col;
+
             boardElement.appendChild(cell);
         }
     }
@@ -171,12 +178,16 @@ function createBoard() {
 
 function createPiece() {
     const shape =
-        SHAPES[Math.floor(Math.random() * SHAPES.length)]
-            .map(row => [...row]);
+        SHAPES[
+            Math.floor(Math.random() * SHAPES.length)
+        ].map(row => [...row]);
 
     return {
         shape,
-        color: COLORS[Math.floor(Math.random() * COLORS.length)],
+        color:
+            COLORS[
+                Math.floor(Math.random() * COLORS.length)
+            ],
         used: false
     };
 }
@@ -195,32 +206,40 @@ function renderPieces() {
     piecesElement.innerHTML = "";
 
     pieces.forEach((piece, index) => {
-        const pieceElement = document.createElement("div");
+        const pieceElement =
+            document.createElement("div");
+
         pieceElement.className = "piece";
 
         if (piece.used) {
             pieceElement.classList.add("used");
         }
 
-        pieceElement.dataset.index = index;
+        const miniGrid =
+            document.createElement("div");
+
+        miniGrid.className = "miniGrid";
 
         const height = piece.shape.length;
         const width = piece.shape[0].length;
 
-        const miniGrid = document.createElement("div");
-        miniGrid.className = "miniGrid";
+        miniGrid.style.gridTemplateColumns =
+            `repeat(${width}, 21px)`;
 
-        miniGrid.style.gridTemplateColumns = `repeat(${width}, 21px)`;
-        miniGrid.style.gridTemplateRows = `repeat(${height}, 21px)`;
+        miniGrid.style.gridTemplateRows =
+            `repeat(${height}, 21px)`;
 
         piece.shape.forEach(row => {
             row.forEach(value => {
-                const miniCell = document.createElement("div");
+                const miniCell =
+                    document.createElement("div");
 
                 if (value) {
-                    miniCell.className = `miniCell block ${piece.color}`;
+                    miniCell.className =
+                        `miniCell block ${piece.color}`;
                 } else {
-                    miniCell.className = "miniCell empty";
+                    miniCell.className =
+                        "miniCell empty";
                 }
 
                 miniGrid.appendChild(miniCell);
@@ -228,12 +247,20 @@ function renderPieces() {
         });
 
         pieceElement.appendChild(miniGrid);
+
         piecesElement.appendChild(pieceElement);
 
         if (!piece.used) {
-            pieceElement.addEventListener("pointerdown", event => {
-                startDrag(event, index, pieceElement);
-            });
+            pieceElement.addEventListener(
+                "pointerdown",
+                event => {
+                    startDrag(
+                        event,
+                        index,
+                        pieceElement
+                    );
+                }
+            );
         }
     });
 }
@@ -243,7 +270,8 @@ function renderBoard() {
 
     for (let row = 0; row < BOARD_SIZE; row++) {
         for (let col = 0; col < BOARD_SIZE; col++) {
-            const cell = cells[row * BOARD_SIZE + col];
+            const cell =
+                cells[row * BOARD_SIZE + col];
 
             cell.className = "cell";
 
@@ -256,7 +284,11 @@ function renderBoard() {
 }
 
 function startDrag(event, index, element) {
-    if (paused || gameOver || pieces[index].used) {
+    if (
+        paused ||
+        gameOver ||
+        pieces[index].used
+    ) {
         return;
     }
 
@@ -276,46 +308,72 @@ function startDrag(event, index, element) {
         element.setPointerCapture(pointerId);
     } catch (_) {}
 
-    updatePreview(event.clientX, event.clientY);
+    updatePreview(
+        event.clientX,
+        event.clientY
+    );
 
-    window.addEventListener("pointermove", handlePointerMove, {
-        passive: false
-    });
+    window.addEventListener(
+        "pointermove",
+        handlePointerMove,
+        { passive: false }
+    );
 
-    window.addEventListener("pointerup", handlePointerUp, {
-        once: true
-    });
+    window.addEventListener(
+        "pointerup",
+        handlePointerUp,
+        { once: true }
+    );
 
-    window.addEventListener("pointercancel", handlePointerUp, {
-        once: true
-    });
+    window.addEventListener(
+        "pointercancel",
+        handlePointerUp,
+        { once: true }
+    );
 }
 
 function handlePointerMove(event) {
-    if (!dragging || event.pointerId !== pointerId) {
+    if (
+        !dragging ||
+        event.pointerId !== pointerId
+    ) {
         return;
     }
 
     event.preventDefault();
-    updatePreview(event.clientX, event.clientY);
+
+    updatePreview(
+        event.clientX,
+        event.clientY
+    );
 }
 
 function handlePointerUp(event) {
-    if (!dragging || event.pointerId !== pointerId) {
+    if (
+        !dragging ||
+        event.pointerId !== pointerId
+    ) {
         return;
     }
 
     const currentDrag = dragging;
 
+    const currentPreview = preview;
+
     clearPreview();
 
-    currentDrag.element.classList.remove("dragging");
+    currentDrag.element.classList.remove(
+        "dragging"
+    );
 
-    if (preview && preview.valid) {
+    if (
+        currentPreview &&
+        currentPreview.valid
+    ) {
         placePiece(
             currentDrag.index,
-            preview.row,
-            preview.col
+            currentPreview.row,
+            currentPreview.col
         );
     }
 
@@ -323,7 +381,10 @@ function handlePointerUp(event) {
     pointerId = null;
     preview = null;
 
-    window.removeEventListener("pointermove", handlePointerMove);
+    window.removeEventListener(
+        "pointermove",
+        handlePointerMove
+    );
 }
 
 function updatePreview(clientX, clientY) {
@@ -333,7 +394,8 @@ function updatePreview(clientX, clientY) {
         return;
     }
 
-    const boardRect = boardElement.getBoundingClientRect();
+    const boardRect =
+        boardElement.getBoundingClientRect();
 
     if (
         clientX < boardRect.left ||
@@ -348,43 +410,80 @@ function updatePreview(clientX, clientY) {
     const piece = dragging.piece;
     const shape = piece.shape;
 
-    const cellWidth = boardRect.width / BOARD_SIZE;
-    const cellHeight = boardRect.height / BOARD_SIZE;
+    const cellWidth =
+        boardRect.width / BOARD_SIZE;
 
-    const centerX = clientX - boardRect.left;
-    const centerY = clientY - boardRect.top;
+    const cellHeight =
+        boardRect.height / BOARD_SIZE;
 
-    let centerCol = Math.floor(centerX / cellWidth);
-    let centerRow = Math.floor(centerY / cellHeight);
+    const x =
+        clientX - boardRect.left;
 
-    const shapeWidth = shape[0].length;
-    const shapeHeight = shape.length;
+    const y =
+        clientY - boardRect.top;
 
-    let firstFilledRow = shapeHeight;
-    let firstFilledCol = shapeWidth;
+    const centerCol =
+        Math.floor(x / cellWidth);
 
-    for (let row = 0; row < shapeHeight; row++) {
-        for (let col = 0; col < shapeWidth; col++) {
+    const centerRow =
+        Math.floor(y / cellHeight);
+
+    const shapeWidth =
+        shape[0].length;
+
+    const shapeHeight =
+        shape.length;
+
+    let firstFilledRow =
+        shapeHeight;
+
+    let firstFilledCol =
+        shapeWidth;
+
+    for (
+        let row = 0;
+        row < shapeHeight;
+        row++
+    ) {
+        for (
+            let col = 0;
+            col < shapeWidth;
+            col++
+        ) {
             if (shape[row][col]) {
-                firstFilledRow = Math.min(firstFilledRow, row);
-                firstFilledCol = Math.min(firstFilledCol, col);
+                firstFilledRow =
+                    Math.min(
+                        firstFilledRow,
+                        row
+                    );
+
+                firstFilledCol =
+                    Math.min(
+                        firstFilledCol,
+                        col
+                    );
             }
         }
     }
 
-    let startRow =
+    const startRow =
         centerRow -
         Math.floor(shapeHeight / 2) -
         firstFilledRow +
         1;
 
-    let startCol =
+    const startCol =
         centerCol -
         Math.floor(shapeWidth / 2) -
         firstFilledCol +
         1;
 
-    const valid = canPlace(shape, startRow, startCol);
+    const valid =
+        canPlace(
+            shape,
+            startRow,
+            startCol
+        );
 
     preview = {
         row: startRow,
@@ -392,14 +491,25 @@ function updatePreview(clientX, clientY) {
         valid
     };
 
-    for (let row = 0; row < shapeHeight; row++) {
-        for (let col = 0; col < shapeWidth; col++) {
+    for (
+        let row = 0;
+        row < shapeHeight;
+        row++
+    ) {
+        for (
+            let col = 0;
+            col < shapeWidth;
+            col++
+        ) {
             if (!shape[row][col]) {
                 continue;
             }
 
-            const boardRow = startRow + row;
-            const boardCol = startCol + col;
+            const boardRow =
+                startRow + row;
+
+            const boardCol =
+                startCol + col;
 
             if (
                 boardRow >= 0 &&
@@ -409,11 +519,14 @@ function updatePreview(clientX, clientY) {
             ) {
                 const cell =
                     boardElement.children[
-                        boardRow * BOARD_SIZE + boardCol
+                        boardRow * BOARD_SIZE +
+                        boardCol
                     ];
 
                 cell.classList.add(
-                    valid ? "preview" : "invalidPreview"
+                    valid
+                        ? "preview"
+                        : "invalidPreview"
                 );
             }
         }
@@ -421,24 +534,43 @@ function updatePreview(clientX, clientY) {
 }
 
 function clearPreview() {
-    const cells = boardElement.querySelectorAll(
-        ".preview, .invalidPreview"
-    );
+    const cells =
+        boardElement.querySelectorAll(
+            ".preview, .invalidPreview"
+        );
 
     cells.forEach(cell => {
-        cell.classList.remove("preview", "invalidPreview");
+        cell.classList.remove(
+            "preview",
+            "invalidPreview"
+        );
     });
 }
 
-function canPlace(shape, startRow, startCol) {
-    for (let row = 0; row < shape.length; row++) {
-        for (let col = 0; col < shape[row].length; col++) {
+function canPlace(
+    shape,
+    startRow,
+    startCol
+) {
+    for (
+        let row = 0;
+        row < shape.length;
+        row++
+    ) {
+        for (
+            let col = 0;
+            col < shape[row].length;
+            col++
+        ) {
             if (!shape[row][col]) {
                 continue;
             }
 
-            const boardRow = startRow + row;
-            const boardCol = startCol + col;
+            const boardRow =
+                startRow + row;
+
+            const boardCol =
+                startCol + col;
 
             if (
                 boardRow < 0 ||
@@ -458,33 +590,63 @@ function canPlace(shape, startRow, startCol) {
     return true;
 }
 
-function placePiece(index, startRow, startCol) {
+function placePiece(
+    index,
+    startRow,
+    startCol
+) {
     const piece = pieces[index];
 
-    if (!canPlace(piece.shape, startRow, startCol)) {
+    if (
+        !canPlace(
+            piece.shape,
+            startRow,
+            startCol
+        )
+    ) {
         return;
     }
 
-    for (let row = 0; row < piece.shape.length; row++) {
-        for (let col = 0; col < piece.shape[row].length; col++) {
+    for (
+        let row = 0;
+        row < piece.shape.length;
+        row++
+    ) {
+        for (
+            let col = 0;
+            col < piece.shape[row].length;
+            col++
+        ) {
             if (piece.shape[row][col]) {
-                board[startRow + row][startCol + col] = piece.color;
+                board[
+                    startRow + row
+                ][
+                    startCol + col
+                ] = piece.color;
             }
         }
     }
 
     piece.used = true;
 
-    const blockCount = piece.shape.flat().filter(Boolean).length;
+    const blockCount =
+        piece.shape
+            .flat()
+            .filter(Boolean)
+            .length;
 
     addScore(blockCount * 2);
 
     renderBoard();
     renderPieces();
 
-    const cleared = findCompletedLines();
+    const cleared =
+        findCompletedLines();
 
-    if (cleared.rows.length || cleared.cols.length) {
+    if (
+        cleared.rows.length ||
+        cleared.cols.length
+    ) {
         animateClear(cleared);
     } else {
         checkForNewSet();
@@ -495,10 +657,18 @@ function findCompletedLines() {
     const rows = [];
     const cols = [];
 
-    for (let row = 0; row < BOARD_SIZE; row++) {
+    for (
+        let row = 0;
+        row < BOARD_SIZE;
+        row++
+    ) {
         let complete = true;
 
-        for (let col = 0; col < BOARD_SIZE; col++) {
+        for (
+            let col = 0;
+            col < BOARD_SIZE;
+            col++
+        ) {
             if (!board[row][col]) {
                 complete = false;
                 break;
@@ -510,10 +680,18 @@ function findCompletedLines() {
         }
     }
 
-    for (let col = 0; col < BOARD_SIZE; col++) {
+    for (
+        let col = 0;
+        col < BOARD_SIZE;
+        col++
+    ) {
         let complete = true;
 
-        for (let row = 0; row < BOARD_SIZE; row++) {
+        for (
+            let row = 0;
+            row < BOARD_SIZE;
+            row++
+        ) {
             if (!board[row][col]) {
                 complete = false;
                 break;
@@ -525,57 +703,90 @@ function findCompletedLines() {
         }
     }
 
-    return { rows, cols };
+    return {
+        rows,
+        cols
+    };
 }
 
 function animateClear(cleared) {
     const cellsToClear = new Set();
 
     cleared.rows.forEach(row => {
-        for (let col = 0; col < BOARD_SIZE; col++) {
-            cellsToClear.add(`${row},${col}`);
+        for (
+            let col = 0;
+            col < BOARD_SIZE;
+            col++
+        ) {
+            cellsToClear.add(
+                `${row},${col}`
+            );
         }
     });
 
     cleared.cols.forEach(col => {
-        for (let row = 0; row < BOARD_SIZE; row++) {
-            cellsToClear.add(`${row},${col}`);
+        for (
+            let row = 0;
+            row < BOARD_SIZE;
+            row++
+        ) {
+            cellsToClear.add(
+                `${row},${col}`
+            );
         }
     });
 
     cellsToClear.forEach(key => {
-        const [row, col] = key.split(",").map(Number);
+        const [row, col] =
+            key.split(",").map(Number);
 
         const cell =
-            boardElement.children[row * BOARD_SIZE + col];
+            boardElement.children[
+                row * BOARD_SIZE + col
+            ];
 
         cell.classList.add("clearing");
     });
 
-    const lineCount = cleared.rows.length + cleared.cols.length;
+    const lineCount =
+        cleared.rows.length +
+        cleared.cols.length;
 
-    const uniqueCells = cellsToClear.size;
+    const uniqueCells =
+        cellsToClear.size;
 
-    const basePoints = uniqueCells * 10;
-    const lineBonus = lineCount * lineCount * 40;
-    const multiBonus = lineCount > 1
-        ? (lineCount - 1) * 100
-        : 0;
+    const basePoints =
+        uniqueCells * 10;
 
-    const points = basePoints + lineBonus + multiBonus;
+    const lineBonus =
+        lineCount * lineCount * 40;
+
+    const multiBonus =
+        lineCount > 1
+            ? (lineCount - 1) * 100
+            : 0;
+
+    const points =
+        basePoints +
+        lineBonus +
+        multiBonus;
 
     linesCleared += lineCount;
 
     addScore(points);
+
     showScorePopup(`+${points}`);
 
     setTimeout(() => {
         cellsToClear.forEach(key => {
-            const [row, col] = key.split(",").map(Number);
+            const [row, col] =
+                key.split(",").map(Number);
+
             board[row][col] = null;
         });
 
         renderBoard();
+
         checkForNewSet();
     }, 350);
 }
@@ -585,7 +796,11 @@ function addScore(amount) {
 
     if (score > bestScore) {
         bestScore = score;
-        localStorage.setItem("blockSpaceBest", bestScore);
+
+        localStorage.setItem(
+            "blockSpaceBest",
+            bestScore
+        );
     }
 
     updateStats();
@@ -598,7 +813,8 @@ function updateStats() {
 }
 
 function showScorePopup(text) {
-    const popup = document.createElement("div");
+    const popup =
+        document.createElement("div");
 
     popup.className = "scorePopup";
     popup.textContent = text;
@@ -614,7 +830,9 @@ function showScorePopup(text) {
 }
 
 function checkForNewSet() {
-    if (pieces.every(piece => piece.used)) {
+    if (
+        pieces.every(piece => piece.used)
+    ) {
         generatePieces();
         return;
     }
@@ -630,11 +848,23 @@ function hasAnyMove() {
             continue;
         }
 
-        const shape = piece.shape;
-
-        for (let row = 0; row < BOARD_SIZE; row++) {
-            for (let col = 0; col < BOARD_SIZE; col++) {
-                if (canPlace(shape, row, col)) {
+        for (
+            let row = 0;
+            row < BOARD_SIZE;
+            row++
+        ) {
+            for (
+                let col = 0;
+                col < BOARD_SIZE;
+                col++
+            ) {
+                if (
+                    canPlace(
+                        piece.shape,
+                        row,
+                        col
+                    )
+                ) {
                     return true;
                 }
             }
@@ -651,15 +881,24 @@ function togglePause() {
 
     paused = !paused;
 
-    pauseOverlay.classList.toggle("hidden", !paused);
-    pauseButton.textContent = paused ? "▶" : "Ⅱ";
+    pauseOverlay.classList.toggle(
+        "hidden",
+        !paused
+    );
+
+    pauseButton.textContent =
+        paused ? "▶" : "Ⅱ";
 }
 
 function endGame() {
     gameOver = true;
 
-    finalScoreElement.textContent = score;
-    gameOverOverlay.classList.remove("hidden");
+    finalScoreElement.textContent =
+        score;
+
+    gameOverOverlay.classList.remove(
+        "hidden"
+    );
 }
 
 function restartGame() {
@@ -678,19 +917,34 @@ function restartGame() {
     updateStats();
 }
 
-pauseButton.addEventListener("click", togglePause);
+pauseButton.addEventListener(
+    "click",
+    togglePause
+);
 
-restartButton.addEventListener("click", restartGame);
+restartButton.addEventListener(
+    "click",
+    restartGame
+);
 
-resumeButton.addEventListener("click", togglePause);
+resumeButton.addEventListener(
+    "click",
+    togglePause
+);
 
-gameOverRestart.addEventListener("click", restartGame);
+gameOverRestart.addEventListener(
+    "click",
+    restartGame
+);
 
-window.addEventListener("resize", () => {
-    if (dragging && pointerId !== null) {
-        clearPreview();
+window.addEventListener(
+    "resize",
+    () => {
+        if (dragging) {
+            clearPreview();
+        }
     }
-});
+);
 
 createBoard();
 generatePieces();
