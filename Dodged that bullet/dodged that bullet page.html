@@ -399,18 +399,17 @@ return;
 
 let active=false;
 let pointerId=null;
-let currentKey=null;
 
-const deadZone=10;
+let pressedKeys=new Set();
+
+const deadZone=8;
 const maxDistance=30;
 
 function pressKey(key){
 
-if(currentKey===key){
+if(pressedKeys.has(key)){
 return;
 }
-
-releaseKey();
 
 try{
 vm.runtime.ioDevices.keyboard.postData({
@@ -421,31 +420,63 @@ isDown:true
 console.error(error);
 }
 
-currentKey=key;
+pressedKeys.add(key);
 }
 
-function releaseKey(){
+function releaseKey(key){
 
-if(!currentKey){
+if(!pressedKeys.has(key)){
 return;
 }
 
 try{
 vm.runtime.ioDevices.keyboard.postData({
-key:currentKey,
+key:key,
 isDown:false
 });
 }catch(error){
 console.error(error);
 }
 
-currentKey=null;
+pressedKeys.delete(key);
+}
+
+function setKeys(keys){
+
+const wantedKeys=new Set(keys);
+
+for(const key of pressedKeys){
+
+if(!wantedKeys.has(key)){
+releaseKey(key);
+}
+
+}
+
+for(const key of wantedKeys){
+
+if(!pressedKeys.has(key)){
+pressKey(key);
+}
+
+}
+
+}
+
+function releaseAllKeys(){
+
+for(const key of pressedKeys){
+releaseKey(key);
+}
+
+pressedKeys.clear();
 }
 
 function resetJoystick(){
 
 knob.style.transform='translate(0px, 0px)';
-releaseKey();
+releaseAllKeys();
+
 }
 
 function updateJoystick(clientX,clientY){
@@ -464,9 +495,8 @@ if(distance<deadZone){
 
 resetJoystick();
 return;
-}
 
-const limitedDistance=Math.min(distance,maxDistance);
+}
 
 if(distance>maxDistance){
 
@@ -483,27 +513,66 @@ knob.style.transform=
 const absoluteX=Math.abs(dx);
 const absoluteY=Math.abs(dy);
 
-let direction;
+let keys=[];
 
-if(absoluteX>absoluteY){
+if(absoluteX>0&&absoluteY>0){
+
+const ratioX=absoluteX/maxDistance;
+const ratioY=absoluteY/maxDistance;
+
+if(ratioX>0.35&&ratioY>0.35){
 
 if(dx>0){
-direction='d';
+keys.push('d');
 }else{
-direction='a';
+keys.push('a');
+}
+
+if(dy<0){
+keys.push('w');
+}else{
+keys.push('s');
+}
+
+}else if(absoluteX>absoluteY){
+
+if(dx>0){
+keys.push('d');
+}else{
+keys.push('a');
 }
 
 }else{
 
 if(dy<0){
-direction='w';
+keys.push('w');
 }else{
-direction='s';
+keys.push('s');
 }
 
 }
 
-pressKey(direction);
+}else if(absoluteX>0){
+
+if(dx>0){
+keys.push('d');
+}else{
+keys.push('a');
+}
+
+}else if(absoluteY>0){
+
+if(dy<0){
+keys.push('w');
+}else{
+keys.push('s');
+
+}
+
+}
+
+setKeys(keys);
+
 }
 
 joystick.addEventListener('pointerdown',(event)=>{
@@ -545,7 +614,11 @@ if(!active){
 return;
 }
 
-if(event&&event.pointerId!==undefined&&event.pointerId!==pointerId){
+if(
+event&&
+event.pointerId!==undefined&&
+event.pointerId!==pointerId
+){
 return;
 }
 
@@ -561,30 +634,45 @@ joystick.releasePointerCapture(event.pointerId);
 }catch(error){}
 
 resetJoystick();
+
 }
 
 joystick.addEventListener('pointerup',stopJoystick);
 joystick.addEventListener('pointercancel',stopJoystick);
+
 joystick.addEventListener('lostpointercapture',()=>{
+
 if(active){
+
 active=false;
 pointerId=null;
+
 resetJoystick();
+
 }
+
 });
 
 window.addEventListener('blur',()=>{
+
 active=false;
 pointerId=null;
+
 resetJoystick();
+
 });
 
 document.addEventListener('visibilitychange',()=>{
+
 if(document.hidden){
+
 active=false;
 pointerId=null;
+
 resetJoystick();
+
 }
+
 });
 
 }
