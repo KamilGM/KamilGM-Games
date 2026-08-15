@@ -27,157 +27,33 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* --- Mobile joystick -> Arrow keys adapter (append to script.js) --- */
 (function () {
-  // Delay until DOM ready
   function ready(fn) {
-    if (document.readyState !== 'loading') return fn();
-    document.addEventListener('DOMContentLoaded', fn);
+    if (document.readyState !== 'loading') {
+      fn();
+    } else {
+      document.addEventListener('DOMContentLoaded', fn);
+    }
   }
 
   ready(function () {
-    // The joystick container element is added to the HTML; try to find it.
     const joystickEl = document.getElementById('mobile-joystick');
-    if (!joystickEl) return;
 
-    const base = joystickEl.querySelector('.joystick-base');
-    const knob = joystickEl.querySelector('.joystick-knob');
-
-    // Hide on non-touch environments as extra precaution
-    if (!('ontouchstart' in window)) {
-      joystickEl.style.display = 'none';
+    if (!joystickEl) {
       return;
     }
 
-    let active = false;
-    let touchId = null;
-    let center = { x: 0, y: 0 };
-    const maxDistance = (joystickEl.clientWidth || 100) / 2 - 8;
+    // The actual joystick controls are handled by the HTML.
+    // This script only makes sure the joystick is hidden
+    // on devices that do not have touch input.
 
-    // Track which arrow keys are currently "pressed"
-    const pressed = { ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false };
-
-    function synthKey(type, key) {
-      const ev = new KeyboardEvent(type, {
-        key: key,
-        code: key,
-        bubbles: true,
-        cancelable: true
-      });
-      window.dispatchEvent(ev);
-    }
-
-    function updatePressed(desired) {
-      for (const k of Object.keys(pressed)) {
-        if (desired[k] && !pressed[k]) {
-          pressed[k] = true;
-          synthKey('keydown', k);
-        } else if (!desired[k] && pressed[k]) {
-          pressed[k] = false;
-          synthKey('keyup', k);
-        }
-      }
-    }
-
-    function setKnobPosition(dx, dy) {
-      knob.style.transform = `translate(${dx}px, ${dy}px)`;
-    }
-
-    function resetKnob() {
-      knob.style.transition = 'transform 0.12s ease-out';
-      setKnobPosition(0, 0);
-      setTimeout(() => (knob.style.transition = ''), 120);
-    }
-
-    function getPointFromTouch(t) {
-      return { x: t.clientX, y: t.clientY };
-    }
-
-    function onStart(t) {
-      active = true;
-      touchId = t.identifier;
-      const rect = base.getBoundingClientRect();
-      center = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-      updatePressed({ ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false });
-    }
-
-    function onMove(t) {
-      if (!active || t.identifier !== touchId) return;
-      const pt = getPointFromTouch(t);
-      let dx = pt.x - center.x;
-      let dy = pt.y - center.y;
-      const dist = Math.sqrt(dx*dx + dy*dy);
-      const clamped = dist > maxDistance ? maxDistance / dist : 1;
-      dx *= clamped;
-      dy *= clamped;
-
-      // visual
-      setKnobPosition(dx, dy);
-
-      // normalized: x right = +1, y up = +1
-      const xNorm = dx / maxDistance;
-      const yNorm = -dy / maxDistance;
-
-      // sensitivity threshold (tweakable)
-      const TH = 0.35;
-
-      const wantLeft = xNorm < -TH;
-      const wantRight = xNorm > TH;
-      const wantUp = yNorm > TH;
-      const wantDown = yNorm < -TH;
-
-      updatePressed({
-        ArrowLeft: wantLeft,
-        ArrowRight: wantRight,
-        ArrowUp: wantUp,
-        ArrowDown: wantDown
-      });
-    }
-
-    function onEnd() {
-      active = false;
-      touchId = null;
-      resetKnob();
-      updatePressed({ ArrowLeft: false, ArrowRight: false, ArrowUp: false, ArrowDown: false });
-    }
-
-    joystickEl.addEventListener('touchstart', function (e) {
-      for (const t of Array.from(e.changedTouches)) {
-        const rect = joystickEl.getBoundingClientRect();
-        if (t.clientX >= rect.left && t.clientX <= rect.right &&
-            t.clientY >= rect.top && t.clientY <= rect.bottom) {
-          e.preventDefault();
-          onStart(t);
-          break;
-        }
-      }
-    }, { passive: false });
-
-    joystickEl.addEventListener('touchmove', function (e) {
-      for (const t of Array.from(e.changedTouches)) {
-        if (touchId === null || t.identifier === touchId) {
-          e.preventDefault();
-          onMove(t);
-          break;
-        }
-      }
-    }, { passive: false });
-
-    joystickEl.addEventListener('touchend', function (e) {
-      for (const t of Array.from(e.changedTouches)) {
-        if (t.identifier === touchId) {
-          e.preventDefault();
-          onEnd();
-          break;
-        }
-      }
-    }, { passive: false });
-
-    joystickEl.addEventListener('touchcancel', function () { onEnd(); });
-
-    // Hide joystick if device changes
     function checkVisibility() {
-      if (!('ontouchstart' in window)) joystickEl.style.display = 'none';
+      if (!('ontouchstart' in window)) {
+        joystickEl.style.display = 'none';
+      }
     }
-    window.addEventListener('resize', checkVisibility);
+
     checkVisibility();
+
+    window.addEventListener('resize', checkVisibility);
   });
 })();
