@@ -105,12 +105,6 @@ box-shadow:0 4px 12px rgba(0,0,0,.4)
 background:#ff6666
 }
 
-.countdown{
-font-size:80px;
-font-weight:bold;
-margin-top:20px
-}
-
 .green-flag{
 width:80px;
 height:80px;
@@ -265,6 +259,7 @@ display:block
 }
 
 @media (max-width:600px){
+
 .launch-title{
 font-size:30px
 }
@@ -292,6 +287,7 @@ font-size:17px
 font-size:20px;
 padding:14px 35px
 }
+
 }
 </style>
 
@@ -304,22 +300,30 @@ padding:14px 35px
 
 <div id="launch" class="screen" hidden>
 
-<h1 class="launch-title" id="launch-title">
+<h1 class="launch-title">
 Dogded That Bullet
 </h1>
-
-<div id="controls-content">
 
 <div class="controls">
 
 <div class="control-box">
+
 <h2>Computer</h2>
-<p><strong>W A S D</strong> to move</p>
+
+<p>
+<strong>W A S D</strong> to move
+</p>
+
 </div>
 
 <div class="control-box">
+
 <h2>Mobile</h2>
-<p>Use the <strong>joystick</strong> to move</p>
+
+<p>
+Use the <strong>joystick</strong> to move
+</p>
+
 </div>
 
 </div>
@@ -330,24 +334,24 @@ START GAME
 
 </div>
 
-<div id="countdown-content" hidden>
-
-<div>Get ready!</div>
-<div class="countdown" id="countdown">5</div>
-
-</div>
-
-</div>
 
 <div id="loading" class="screen">
 
-<noscript>Enable JavaScript</noscript>
+<noscript>
+Enable JavaScript
+</noscript>
 
 <div class="progress-bar-outer">
-<div class="progress-bar-inner" id="loading-inner"></div>
+
+<div
+class="progress-bar-inner"
+id="loading-inner">
 </div>
 
 </div>
+
+</div>
+
 
 <div id="error" class="screen" hidden>
 
@@ -363,17 +367,21 @@ START GAME
 
 </div>
 
+
 <div id="mobile-joystick" aria-hidden="true" title="Virtual joystick">
 
 <div class="joystick-base">
 
-<div class="joystick-knob"></div>
-
+<div class="joystick-knob">
 </div>
 
 </div>
+
+</div>
+
 
 <script src="script.js"></script>
+
 
 <script>
 
@@ -392,12 +400,6 @@ const errorScreenMessage=document.getElementById('error-message');
 const errorScreenStack=document.getElementById('error-stack');
 
 const startButton=document.getElementById('start-button');
-
-const controlsContent=document.getElementById('controls-content');
-
-const countdownContent=document.getElementById('countdown-content');
-
-const countdownElement=document.getElementById('countdown');
 
 
 const handleError=(error)=>{
@@ -787,9 +789,9 @@ loadingScreen.hidden=true;
 
 
 /*
-Do NOT start the Scratch project yet.
+The project is loaded, but we do NOT start it yet.
 
-First show the controls screen.
+The player must first see the controls.
 */
 
 launchScreen.hidden=false;
@@ -805,7 +807,14 @@ run().catch(handleError);
 <script>
 
 /*
-Start button and 5 second countdown.
+The HTML Start Game button.
+
+This starts the Scratch project immediately.
+
+There is NO countdown here.
+
+The 5-second delay for the massive ball
+must be inside the Scratch project itself.
 */
 
 let gameStarted=false;
@@ -813,47 +822,35 @@ let gameStarted=false;
 
 startButton.addEventListener('click',()=>{
 
-if(gameStarted)return;
+if(gameStarted){
 
-gameStarted=true;
-
-controlsContent.hidden=true;
-
-countdownContent.hidden=false;
-
-let remaining=5;
-
-countdownElement.textContent=remaining;
-
-
-const timer=setInterval(()=>{
-
-remaining--;
-
-if(remaining>0){
-
-countdownElement.textContent=remaining;
-
-}else{
-
-clearInterval(timer);
-
-countdownElement.textContent='GO!';
-
-
-setTimeout(()=>{
-
-launchScreen.hidden=true;
-
-scaffolding.start();
-
-setupMobileJoystick();
-
-},500);
+return;
 
 }
 
-},1000);
+gameStarted=true;
+
+
+/*
+Hide the controls screen.
+*/
+
+launchScreen.hidden=true;
+
+
+/*
+Start the actual Scratch project.
+*/
+
+scaffolding.start();
+
+
+/*
+Set up the mobile joystick after
+the Scratch project has started.
+*/
+
+setupMobileJoystick();
 
 });
 
@@ -987,7 +984,6 @@ for(const key of pressedKeys){
 releaseKey(key);
 
 }
-
 
 pressedKeys.clear();
 
