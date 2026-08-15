@@ -42,10 +42,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
       return;
     }
 
-    // The actual joystick controls are handled by the HTML.
-    // This script only makes sure the joystick is hidden
-    // on devices that do not have touch input.
+    const knob = joystickEl.querySelector('.joystick-knob');
 
+    if (!knob) {
+      return;
+    }
+
+    // Hide the joystick on devices without touch input.
     function checkVisibility() {
       if (!('ontouchstart' in window)) {
         joystickEl.style.display = 'none';
