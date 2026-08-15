@@ -84,6 +84,7 @@ function startGame() {
     startScreen.classList.add("hidden");
     gameScreen.classList.remove("hidden");
     gameOverScreen.classList.add("hidden");
+    settingsMenu.classList.add("hidden");
 
     score = 0;
 
@@ -103,7 +104,10 @@ function startGame() {
 
     clearInterval(gameLoop);
 
-    gameLoop = setInterval(updateGame, getSpeed());
+    gameLoop = setInterval(
+        updateGame,
+        getSpeed()
+    );
 
     resizeCanvas();
 }
@@ -132,12 +136,18 @@ function updateScore() {
 // ==========================
 
 function createFood() {
-    const maxCells = Math.floor(canvas.width / GRID_SIZE);
+    const maxCells = Math.floor(
+        canvas.width / GRID_SIZE
+    );
 
     do {
         food = {
-            x: Math.floor(Math.random() * maxCells),
-            y: Math.floor(Math.random() * maxCells)
+            x: Math.floor(
+                Math.random() * maxCells
+            ),
+            y: Math.floor(
+                Math.random() * maxCells
+            )
         };
     } while (
         snake.some(
@@ -165,7 +175,9 @@ function updateGame() {
         y: snake[0].y + direction.y
     };
 
-    const maxCells = Math.floor(canvas.width / GRID_SIZE);
+    const maxCells = Math.floor(
+        canvas.width / GRID_SIZE
+    );
 
 
     // Wall collision
@@ -197,7 +209,7 @@ function updateGame() {
     snake.unshift(head);
 
 
-    // Food
+    // Eat food
     if (
         head.x === food.x &&
         head.y === food.y
@@ -211,7 +223,6 @@ function updateGame() {
         snake.pop();
     }
 
-
     draw();
 }
 
@@ -221,7 +232,10 @@ function updateGame() {
 // ==========================
 
 function draw() {
-    const cells = Math.floor(canvas.width / GRID_SIZE);
+    const cells = Math.floor(
+        canvas.width / GRID_SIZE
+    );
+
     const cellSize = canvas.width / cells;
 
     ctx.clearRect(
@@ -255,21 +269,23 @@ function draw() {
 
 
     // Snake
-    snake.forEach((segment, index) => {
+    snake.forEach(
+        (segment, index) => {
 
-        if (index === 0) {
-            ctx.fillStyle = "#66ff66";
-        } else {
-            ctx.fillStyle = "#32cd32";
+            if (index === 0) {
+                ctx.fillStyle = "#66ff66";
+            } else {
+                ctx.fillStyle = "#32cd32";
+            }
+
+            ctx.fillRect(
+                segment.x * cellSize,
+                segment.y * cellSize,
+                cellSize - 1,
+                cellSize - 1
+            );
         }
-
-        ctx.fillRect(
-            segment.x * cellSize,
-            segment.y * cellSize,
-            cellSize - 1,
-            cellSize - 1
-        );
-    });
+    );
 }
 
 
@@ -278,7 +294,6 @@ function draw() {
 // ==========================
 
 function changeDirection(newDirection) {
-
     if (!gameRunning) {
         return;
     }
@@ -292,7 +307,6 @@ function changeDirection(newDirection) {
         return;
     }
 
-
     nextDirection = newDirection;
 }
 
@@ -301,52 +315,55 @@ function changeDirection(newDirection) {
 // KEYBOARD CONTROLS
 // ==========================
 
-document.addEventListener("keydown", event => {
+document.addEventListener(
+    "keydown",
+    event => {
 
-    let newDirection = null;
+        let newDirection = null;
 
-    switch (event.key.toLowerCase()) {
+        switch (event.key.toLowerCase()) {
 
-        case "arrowup":
-        case "w":
-            newDirection = {
-                x: 0,
-                y: -1
-            };
-            break;
+            case "arrowup":
+            case "w":
+                newDirection = {
+                    x: 0,
+                    y: -1
+                };
+                break;
 
-        case "arrowdown":
-        case "s":
-            newDirection = {
-                x: 0,
-                y: 1
-            };
-            break;
+            case "arrowdown":
+            case "s":
+                newDirection = {
+                    x: 0,
+                    y: 1
+                };
+                break;
 
-        case "arrowleft":
-        case "a":
-            newDirection = {
-                x: -1,
-                y: 0
-            };
-            break;
+            case "arrowleft":
+            case "a":
+                newDirection = {
+                    x: -1,
+                    y: 0
+                };
+                break;
 
-        case "arrowright":
-        case "d":
-            newDirection = {
-                x: 1,
-                y: 0
-            };
-            break;
+            case "arrowright":
+            case "d":
+                newDirection = {
+                    x: 1,
+                    y: 0
+                };
+                break;
+        }
+
+
+        if (newDirection !== null) {
+            event.preventDefault();
+
+            changeDirection(newDirection);
+        }
     }
-
-
-    if (newDirection !== null) {
-        event.preventDefault();
-
-        changeDirection(newDirection);
-    }
-});
+);
 
 
 // ==========================
@@ -395,7 +412,10 @@ canvas.addEventListener(
 
 
         // Horizontal swipe
-        if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        if (
+            Math.abs(deltaX) >
+            Math.abs(deltaY)
+        ) {
 
             if (deltaX > 0) {
 
@@ -434,7 +454,7 @@ canvas.addEventListener(
         }
 
 
-        // Reverse swipe directions if enabled
+        // Reverse swipe directions
         if (oppositeSwipes) {
 
             newDirection = {
@@ -474,18 +494,25 @@ function endGame() {
     finalScore.textContent =
         "Score: " + score;
 
-    gameOverScreen.classList.remove("hidden");
+    gameOverScreen.classList.remove(
+        "hidden"
+    );
 }
 
 
 // ==========================
-// BUTTONS
+// START BUTTON
 // ==========================
 
 startButton.addEventListener(
     "click",
     startGame
 );
+
+
+// ==========================
+// RESTART BUTTON
+// ==========================
 
 restartButton.addEventListener(
     "click",
@@ -500,15 +527,52 @@ restartButton.addEventListener(
 settingsButton.addEventListener(
     "click",
     () => {
-        settingsMenu.classList.remove("hidden");
+
+        if (!gameRunning) {
+            return;
+        }
+
+
+        // PAUSE THE GAME
+        gameRunning = false;
+
+        clearInterval(gameLoop);
+
+
+        // OPEN SETTINGS
+        settingsMenu.classList.remove(
+            "hidden"
+        );
     }
 );
 
 
+// ==========================
+// CLOSE SETTINGS
+// ==========================
+
 closeSettings.addEventListener(
     "click",
     () => {
-        settingsMenu.classList.add("hidden");
+
+        // CLOSE SETTINGS
+        settingsMenu.classList.add(
+            "hidden"
+        );
+
+
+        // RESUME GAME
+        if (!gameRunning) {
+
+            gameRunning = true;
+
+            clearInterval(gameLoop);
+
+            gameLoop = setInterval(
+                updateGame,
+                getSpeed()
+            );
+        }
     }
 );
 
@@ -521,10 +585,11 @@ difficultySelect.addEventListener(
     "change",
     () => {
 
-        difficulty = difficultySelect.value;
+        difficulty =
+            difficultySelect.value;
 
 
-        // Update speed immediately
+        // Apply new speed immediately
         if (gameRunning) {
 
             clearInterval(gameLoop);
@@ -539,7 +604,7 @@ difficultySelect.addEventListener(
 
 
 // ==========================
-// OPPOSITE SWIPES SETTING
+// OPPOSITE SWIPES
 // ==========================
 
 oppositeSwipesCheckbox.addEventListener(
