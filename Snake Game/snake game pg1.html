@@ -1,49 +1,83 @@
-<div id="game-container">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <div id="start-screen">
-        <h1>Snake</h1>
+    <title>Snake Game</title>
 
-        <h2>How to Play</h2>
-        <p>🐍 Move the snake by swiping on mobile or using the arrow keys/WASD.</p>
-        <p>🍎 Eat the food to grow.</p>
-        <p>💥 Don't hit the walls or yourself.</p>
+    <link rel="stylesheet" href="style.css">
+</head>
 
-        <button id="start-button">Start Game</button>
-    </div>
+<body>
 
-    <div id="game-screen" class="hidden">
-        <div id="top-bar">
-            <div id="score">Score: 0</div>
-            <button id="settings-button" aria-label="Settings">⚙️</button>
+    <div id="game-container">
+
+        <div id="start-screen">
+            <h1>Snake</h1>
+
+            <h2>How to Play</h2>
+
+            <p>🐍 Use the arrow keys or WASD to move.</p>
+            <p>📱 On mobile, swipe in the direction you want to move.</p>
+            <p>🍎 Eat the food to grow.</p>
+            <p>💥 Don't hit the walls or yourself.</p>
+
+            <button id="start-button">Start Game</button>
         </div>
 
-        <canvas id="game-canvas"></canvas>
+        <div id="game-screen" class="hidden">
 
-        <div id="game-over-screen" class="hidden">
-            <h2>Game Over!</h2>
-            <p id="final-score">Score: 0</p>
-            <button id="restart-button">Play Again</button>
+            <div id="top-bar">
+                <div id="score">Score: 0</div>
+
+                <button id="settings-button" aria-label="Settings">
+                    ⚙️
+                </button>
+            </div>
+
+            <canvas id="game-canvas"></canvas>
+
+            <div id="game-over-screen" class="hidden">
+                <h2>Game Over!</h2>
+
+                <p id="final-score">Score: 0</p>
+
+                <button id="restart-button">
+                    Play Again
+                </button>
+            </div>
+
         </div>
+
+        <div id="settings-menu" class="hidden">
+
+            <h2>Settings</h2>
+
+            <label for="difficulty">
+                Difficulty:
+            </label>
+
+            <select id="difficulty">
+                <option value="easy">Easy</option>
+                <option value="normal" selected>Normal</option>
+                <option value="hard">Hard</option>
+            </select>
+
+            <label>
+                <input type="checkbox" id="opposite-swipes">
+                Opposite swipes
+            </label>
+
+            <button id="close-settings">
+                Close
+            </button>
+
+        </div>
+
     </div>
 
-    <div id="settings-menu" class="hidden">
-        <h2>Settings</h2>
+    <script src="snake game script.js"></script>
 
-        <label for="difficulty">Difficulty:</label>
-        <select id="difficulty">
-            <option value="easy">Easy</option>
-            <option value="normal" selected>Normal</option>
-            <option value="hard">Hard</option>
-        </select>
-
-        <label>
-            <input type="checkbox" id="opposite-swipes">
-            Opposite swipes
-        </label>
-
-        <button id="close-settings">Close</button>
-    </div>
-
-</div>
-
-<script src="snake game script.js"></script>
+</body>
+</html>
