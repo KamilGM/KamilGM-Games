@@ -1,624 +1,240 @@
-const canvas = document.getElementById("game-canvas");
-const ctx = canvas.getContext("2d");
-
-const startScreen = document.getElementById("start-screen");
-const gameScreen = document.getElementById("game-screen");
-const gameOverScreen = document.getElementById("game-over-screen");
-
-const startButton = document.getElementById("start-button");
-const restartButton = document.getElementById("restart-button");
-
-const settingsButton = document.getElementById("settings-button");
-const closeSettings = document.getElementById("close-settings");
-const settingsMenu = document.getElementById("settings-menu");
-
-const scoreDisplay = document.getElementById("score");
-const finalScore = document.getElementById("final-score");
-
-const difficultySelect = document.getElementById("difficulty");
-const oppositeSwipesCheckbox = document.getElementById("opposite-swipes");
-
-const GRID_SIZE = 20;
-
-let snake = [];
-let food = {};
-
-let direction = { x: 1, y: 0 };
-let nextDirection = { x: 1, y: 0 };
-
-let score = 0;
-let gameRunning = false;
-let gameLoop = null;
-
-let difficulty = "normal";
-let oppositeSwipes = false;
-
-let touchStartX = 0;
-let touchStartY = 0;
-
-
-// ==========================
-// CANVAS SIZE
-// ==========================
-
-function resizeCanvas() {
-    const maxSize = Math.min(
-        window.innerWidth - 30,
-        window.innerHeight - 180,
-        500
-    );
-
-    const size = Math.max(240, maxSize);
-
-    canvas.width = size;
-    canvas.height = size;
-
-    draw();
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-window.addEventListener("resize", resizeCanvas);
-
-
-// ==========================
-// DIFFICULTY
-// ==========================
-
-function getSpeed() {
-    if (difficulty === "easy") {
-        return 180;
-    }
-
-    if (difficulty === "hard") {
-        return 80;
-    }
-
-    return 120;
+body {
+    font-family: Arial, sans-serif;
+    background: #181818;
+    color: white;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
 }
 
-
-// ==========================
-// START GAME
-// ==========================
-
-function startGame() {
-    startScreen.classList.add("hidden");
-    gameScreen.classList.remove("hidden");
-    gameOverScreen.classList.add("hidden");
-    settingsMenu.classList.add("hidden");
-
-    score = 0;
-
-    snake = [
-        { x: 10, y: 10 },
-        { x: 9, y: 10 },
-        { x: 8, y: 10 }
-    ];
-
-    direction = { x: 1, y: 0 };
-    nextDirection = { x: 1, y: 0 };
-
-    updateScore();
-    createFood();
-
-    gameRunning = true;
-
-    clearInterval(gameLoop);
-
-    gameLoop = setInterval(
-        updateGame,
-        getSpeed()
-    );
-
-    resizeCanvas();
+#game-container {
+    width: 100%;
+    max-width: 600px;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 20px;
 }
 
-
-// ==========================
-// RESTART GAME
-// ==========================
-
-function restartGame() {
-    startGame();
+#start-screen {
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
 }
 
-
-// ==========================
-// SCORE
-// ==========================
-
-function updateScore() {
-    scoreDisplay.textContent = "Score: " + score;
+#start-screen h1 {
+    font-size: 60px;
+    margin-bottom: 25px;
 }
 
-
-// ==========================
-// CREATE FOOD
-// ==========================
-
-function createFood() {
-    const maxCells = Math.floor(
-        canvas.width / GRID_SIZE
-    );
-
-    do {
-        food = {
-            x: Math.floor(
-                Math.random() * maxCells
-            ),
-            y: Math.floor(
-                Math.random() * maxCells
-            )
-        };
-    } while (
-        snake.some(
-            segment =>
-                segment.x === food.x &&
-                segment.y === food.y
-        )
-    );
+#start-screen h2 {
+    font-size: 28px;
+    margin-bottom: 20px;
 }
 
-
-// ==========================
-// UPDATE GAME
-// ==========================
-
-function updateGame() {
-    if (!gameRunning) {
-        return;
-    }
-
-    direction = nextDirection;
-
-    const head = {
-        x: snake[0].x + direction.x,
-        y: snake[0].y + direction.y
-    };
-
-    const maxCells = Math.floor(
-        canvas.width / GRID_SIZE
-    );
-
-
-    // Wall collision
-    if (
-        head.x < 0 ||
-        head.y < 0 ||
-        head.x >= maxCells ||
-        head.y >= maxCells
-    ) {
-        endGame();
-        return;
-    }
-
-
-    // Snake collision
-    if (
-        snake.some(
-            segment =>
-                segment.x === head.x &&
-                segment.y === head.y
-        )
-    ) {
-        endGame();
-        return;
-    }
-
-
-    // Add new head
-    snake.unshift(head);
-
-
-    // Eat food
-    if (
-        head.x === food.x &&
-        head.y === food.y
-    ) {
-        score++;
-
-        updateScore();
-
-        createFood();
-    } else {
-        snake.pop();
-    }
-
-    draw();
+#start-screen p {
+    font-size: 18px;
+    margin: 12px 0;
+    line-height: 1.4;
 }
 
-
-// ==========================
-// DRAW GAME
-// ==========================
-
-function draw() {
-    const cells = Math.floor(
-        canvas.width / GRID_SIZE
-    );
-
-    const cellSize = canvas.width / cells;
-
-    ctx.clearRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
-
-
-    // Background
-    ctx.fillStyle = "#111111";
-
-    ctx.fillRect(
-        0,
-        0,
-        canvas.width,
-        canvas.height
-    );
-
-
-    // Food
-    ctx.fillStyle = "#ff3333";
-
-    ctx.fillRect(
-        food.x * cellSize,
-        food.y * cellSize,
-        cellSize - 1,
-        cellSize - 1
-    );
-
-
-    // Snake
-    snake.forEach(
-        (segment, index) => {
-
-            if (index === 0) {
-                ctx.fillStyle = "#66ff66";
-            } else {
-                ctx.fillStyle = "#32cd32";
-            }
-
-            ctx.fillRect(
-                segment.x * cellSize,
-                segment.y * cellSize,
-                cellSize - 1,
-                cellSize - 1
-            );
-        }
-    );
+button {
+    border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 18px;
+    cursor: pointer;
+    background: #32cd32;
+    color: white;
+    font-weight: bold;
 }
 
-
-// ==========================
-// CHANGE DIRECTION
-// ==========================
-
-function changeDirection(newDirection) {
-    if (!gameRunning) {
-        return;
-    }
-
-
-    // Prevent instant 180-degree turns
-    if (
-        newDirection.x === -direction.x &&
-        newDirection.y === -direction.y
-    ) {
-        return;
-    }
-
-    nextDirection = newDirection;
+button:hover {
+    filter: brightness(1.15);
 }
 
-
-// ==========================
-// KEYBOARD CONTROLS
-// ==========================
-
-document.addEventListener(
-    "keydown",
-    event => {
-
-        let newDirection = null;
-
-        switch (event.key.toLowerCase()) {
-
-            case "arrowup":
-            case "w":
-                newDirection = {
-                    x: 0,
-                    y: -1
-                };
-                break;
-
-            case "arrowdown":
-            case "s":
-                newDirection = {
-                    x: 0,
-                    y: 1
-                };
-                break;
-
-            case "arrowleft":
-            case "a":
-                newDirection = {
-                    x: -1,
-                    y: 0
-                };
-                break;
-
-            case "arrowright":
-            case "d":
-                newDirection = {
-                    x: 1,
-                    y: 0
-                };
-                break;
-        }
-
-
-        if (newDirection !== null) {
-            event.preventDefault();
-
-            changeDirection(newDirection);
-        }
-    }
-);
-
-
-// ==========================
-// MOBILE SWIPES
-// ==========================
-
-canvas.addEventListener(
-    "touchstart",
-    event => {
-
-        const touch = event.touches[0];
-
-        touchStartX = touch.clientX;
-        touchStartY = touch.clientY;
-
-    },
-    { passive: true }
-);
-
-
-canvas.addEventListener(
-    "touchend",
-    event => {
-
-        const touch = event.changedTouches[0];
-
-        const deltaX =
-            touch.clientX - touchStartX;
-
-        const deltaY =
-            touch.clientY - touchStartY;
-
-        const minimumSwipe = 25;
-
-
-        // Ignore tiny movements
-        if (
-            Math.abs(deltaX) < minimumSwipe &&
-            Math.abs(deltaY) < minimumSwipe
-        ) {
-            return;
-        }
-
-
-        let newDirection;
-
-
-        // Horizontal swipe
-        if (
-            Math.abs(deltaX) >
-            Math.abs(deltaY)
-        ) {
-
-            if (deltaX > 0) {
-
-                newDirection = {
-                    x: 1,
-                    y: 0
-                };
-
-            } else {
-
-                newDirection = {
-                    x: -1,
-                    y: 0
-                };
-            }
-
-        }
-
-        // Vertical swipe
-        else {
-
-            if (deltaY > 0) {
-
-                newDirection = {
-                    x: 0,
-                    y: 1
-                };
-
-            } else {
-
-                newDirection = {
-                    x: 0,
-                    y: -1
-                };
-            }
-        }
-
-
-        // Reverse swipe directions
-        if (oppositeSwipes) {
-
-            newDirection = {
-                x: -newDirection.x,
-                y: -newDirection.y
-            };
-        }
-
-
-        changeDirection(newDirection);
-
-    },
-    { passive: true }
-);
-
-
-// Prevent mobile page scrolling
-canvas.addEventListener(
-    "touchmove",
-    event => {
-        event.preventDefault();
-    },
-    { passive: false }
-);
-
-
-// ==========================
-// GAME OVER
-// ==========================
-
-function endGame() {
-
-    gameRunning = false;
-
-    clearInterval(gameLoop);
-
-    finalScore.textContent =
-        "Score: " + score;
-
-    gameOverScreen.classList.remove(
-        "hidden"
-    );
+#start-button {
+    margin-top: 25px;
+    padding: 15px 35px;
+    font-size: 21px;
 }
 
+/* Back to Home button */
+#back-button {
+    display: block;
+    margin: 12px auto 0;
+    padding: 11px 25px;
+    font-size: 17px;
+    background: #444;
+}
 
-// ==========================
-// START BUTTON
-// ==========================
+#game-screen {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
 
-startButton.addEventListener(
-    "click",
-    startGame
-);
+#top-bar {
+    width: 100%;
+    max-width: 500px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
 
+#score {
+    font-size: 22px;
+    font-weight: bold;
+}
 
-// ==========================
-// RESTART BUTTON
-// ==========================
+#settings-button {
+    padding: 8px 12px;
+    font-size: 20px;
+    background: #333;
+}
 
-restartButton.addEventListener(
-    "click",
-    restartGame
-);
+#game-canvas {
+    width: min(90vw, 500px);
+    height: min(90vw, 500px);
+    max-width: 500px;
+    max-height: 500px;
+    border-radius: 8px;
+    touch-action: none;
+    display: block;
+}
 
+.hidden {
+    display: none !important;
+}
 
-// ==========================
-// SETTINGS
-// ==========================
+#game-over-screen {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.9);
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    width: min(90%, 400px);
+}
 
-settingsButton.addEventListener(
-    "click",
-    () => {
+#game-over-screen h2 {
+    font-size: 32px;
+    margin-bottom: 15px;
+}
 
-        if (!gameRunning) {
-            return;
-        }
+#game-over-screen p {
+    font-size: 20px;
+    margin-bottom: 20px;
+}
 
+#settings-menu {
+    position: absolute;
+    z-index: 10;
+    width: min(90%, 350px);
+    background: #252525;
+    padding: 25px;
+    border-radius: 15px;
+    box-shadow: 0 5px 30px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
 
-        // PAUSE THE GAME
-        gameRunning = false;
+#settings-menu h2 {
+    font-size: 28px;
+    text-align: center;
+}
 
-        clearInterval(gameLoop);
+#settings-menu label {
+    font-size: 17px;
+}
 
+#difficulty {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+    background: #333;
+    color: white;
+}
 
-        // OPEN SETTINGS
-        settingsMenu.classList.remove(
-            "hidden"
-        );
+#opposite-swipes {
+    width: 18px;
+    height: 18px;
+    margin-right: 8px;
+}
+
+#close-settings {
+    width: 100%;
+    background: #444;
+}
+
+@media (max-width: 600px) {
+    #game-container {
+        padding: 15px;
     }
-);
 
-
-// ==========================
-// CLOSE SETTINGS
-// ==========================
-
-closeSettings.addEventListener(
-    "click",
-    () => {
-
-        // CLOSE SETTINGS
-        settingsMenu.classList.add(
-            "hidden"
-        );
-
-
-        // RESUME GAME
-        if (!gameRunning) {
-
-            gameRunning = true;
-
-            clearInterval(gameLoop);
-
-            gameLoop = setInterval(
-                updateGame,
-                getSpeed()
-            );
-        }
+    #start-screen h1 {
+        font-size: 48px;
     }
-);
 
-
-// ==========================
-// DIFFICULTY SETTING
-// ==========================
-
-difficultySelect.addEventListener(
-    "change",
-    () => {
-
-        difficulty =
-            difficultySelect.value;
-
-
-        // Apply new speed immediately
-        if (gameRunning) {
-
-            clearInterval(gameLoop);
-
-            gameLoop = setInterval(
-                updateGame,
-                getSpeed()
-            );
-        }
+    #start-screen h2 {
+        font-size: 24px;
     }
-);
 
-
-// ==========================
-// OPPOSITE SWIPES
-// ==========================
-
-oppositeSwipesCheckbox.addEventListener(
-    "change",
-    () => {
-
-        oppositeSwipes =
-            oppositeSwipesCheckbox.checked;
+    #start-screen p {
+        font-size: 16px;
     }
-);
 
+    #score {
+        font-size: 19px;
+    }
 
-// ==========================
-// INITIAL SETUP
-// ==========================
+    #game-canvas {
+        width: 90vw;
+        height: 90vw;
+    }
+}
 
-resizeCanvas();
+@media (max-height: 600px) {
+    #game-container {
+        padding: 10px;
+    }
+
+    #start-screen h1 {
+        font-size: 40px;
+        margin-bottom: 10px;
+    }
+
+    #start-screen h2 {
+        font-size: 20px;
+        margin-bottom: 10px;
+    }
+
+    #start-screen p {
+        font-size: 14px;
+        margin: 6px 0;
+    }
+
+    #start-button {
+        margin-top: 12px;
+        padding: 10px 25px;
+    }
+
+    #game-canvas {
+        width: min(80vh, 500px);
+        height: min(80vh, 500px);
+    }
+}
